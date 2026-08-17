@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alumnos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-text mig160">
+                <h1>Portal de Registro</h1>
+                <p id="course-title">Cargando curso activo...</p>
+            </div>
+        </header>
+
+        <main>
+            <section id="search-section" class="card glass">
+                <h2>Búsqueda de Alumno</h2>
+                <div class="form-group search-box">
+                    <label for="alumno-search">Encuentra tu nombre en la lista:</label>
+                    <input type="text" id="alumno-search" placeholder="Escribe tu nombre o apellido..."
+                        autocomplete="off">
+                    <div id="results-list" class="results-list"></div>
+                </div>
+            </section>
+
+            <section id="form-section" class="card glass mig18">
+                <h2 id="selected-alumno-name">Completa tus Datos</h2>
+                <form id="registro-form">
+                    <div class="form-grid">
+                        <div class="form-group" id="fg-email">
+                            <label for="email">Email Privado</label>
+                            <input type="email" id="email" required placeholder="ejemplo@mail.com">
+                        </div>
+                        <div class="form-group" id="fg-dni">
+                            <label for="dni">DNI / ID</label>
+                            <input type="text" id="dni" required placeholder="Documento de identidad">
+                        </div>
+                        <div class="form-group" id="fg-titulo">
+                            <label for="titulo">Título Profesional / Especialidad</label>
+                            <select id="titulo" required class="mig161">
+                                <option value="" disabled selected>Selecciona tu título / área...</option>
+                                <option value="ABOGADO">ABOGADO</option>
+                                <option value="ARQUITECTO">ARQUITECTO</option>
+                                <option value="COMUNICADOR">COMUNICADOR</option>
+                                <option value="CONTADOR">CONTADOR</option>
+                                <option value="DOCENTE">DOCENTE</option>
+                                <option value="ENFERMERO">ENFERMERO</option>
+                                <option value="IMAGENOLOGO">IMAGENOLOGO (Tomografía / Ecografía)</option>
+                                <option value="INGENIERO">INGENIERO</option>
+                                <option value="LICENCIADO">LICENCIADO</option>
+                                <option value="MEDICO">MEDICO</option>
+                                <option value="NUTRICIONISTA">NUTRICIONISTA</option>
+                                <option value="POLITOLOGO">POLITOLOGO</option>
+                                <option value="PSICOLOGO">PSICOLOGO</option>
+                                <option value="RADIOLOGO">RADIOLOGO</option>
+                                <option value="SISTEMAS">SISTEMAS / INFORMATICO</option>
+                                <option value="VETERINARIO">VETERINARIO</option>
+                                <option value="OTRO">OTRO</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-tecnologia">
+                            <label for="tecnologia">Relación con la Tecnología</label>
+                            <select id="tecnologia" required class="mig161">
+                                <option value="" disabled selected>¿Cómo te llevas con la tecnología?</option>
+                                <option value="AVANZADO">AVANZADO (La uso a diario sin problema)</option>
+                                <option value="MODERADO">MODERADO (Uso lo básico, a veces me cuesta)</option>
+                                <option value="TEMEROSO">TEMEROSO (Le tengo resistencia / miedo)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-grupo">
+                            <label for="grupo">Grupo (Una sola palabra)</label>
+                            <select id="grupo" required class="mig162">
+                                <option value="" disabled selected>Selecciona tu grupo...</option>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-telefono">
+                            <label for="telefono">Teléfono (Opcional)</label>
+                            <input type="tel" id="telefono" placeholder="+54 9 ...">
+                        </div>
+
+                        <!-- Selector de Foto Real del Rostro -->
+                        <div class="form-group mig163" id="fg-foto">
+                            <label class="mig164">
+                                📷 Foto Real de tu Rostro (Obligatorio)
+                            </label>
+                            <p class="mig165">
+                                Toca abajo para tomar o subir una foto de tu cara para que el docente te reconozca en clase.
+                            </p>
+                            <div class="mig166">
+                                <div id="foto-preview-box" class="mig167">
+                                    <img id="foto-preview-img" class="mig168">
+                                </div>
+                                <label for="foto-input" class="btn-primary mig169">
+                                    📸 Tomar / Elegir Foto de Rostro
+                                </label>
+                                <input type="file" id="foto-input" accept="image/*" capture="user" class="mig18">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Campos personalizados creados por el docente -->
+                    <div class="form-grid mig170" id="custom-fields-student-container"></div>
+
+                    <div class="mig171">
+                        📌 <strong>Al enviar este formulario se registrará automáticamente tu estado de PRESENTE para la clase de hoy.</strong>
+                    </div>
+
+                    <button type="submit" class="btn-primary mig172">
+                        ✅ DAR MI PRESENTE Y ENVIAR
+                    </button>
+                    <p id="msg-feedback" class="feedback"></p>
+                </form>
+            </section>
+
+            <section id="registered-section" class="card glass mig173"
+               >
+                <div
+                    class="mig174">
+                    ✅</div>
+                <h2 class="mig175">¡Registro Exitoso!</h2>
+                <p class="mig176">Ya has completado tu registro para este curso. Solo se
+                    permite un alumno por dispositivo.</p>
+                <div class="mig177">Si cometiste un error, solicita al
+                    docente que borre tu entrada anterior.</div>
+            </section>
+
+            <section id="auto-registered-section" class="card glass mig178"
+               >
+                <div id="auto-student-photo-box" class="mig179">
+                    <img id="auto-student-photo-img" class="student-avatar-lg mig18" src="">
+                </div>
+                <div class="mig180">🟢</div>
+                <h2 id="auto-welcome-title" class="mig181">¡Bienvenido!</h2>
+                <div class="mig182">
+                    <p id="auto-presente-msg" class="mig183">
+                        ✅ Tu PRESENTE para la clase de hoy ha sido registrado automáticamente.
+                    </p>
+                </div>
+
+                <!-- Auto-presente tardío: llegó después de que el docente tomó lista -->
+                <div id="auto-tardio-box" class="mig184">
+                    <button id="btn-auto-presente-tardio" class="btn-primary mig185">
+                        📝 DAR MI PRESENTE (LLEGUÉ TARDE)
+                    </button>
+                    <p id="auto-tardio-feedback" class="feedback mig186"></p>
+                </div>
+                
+                <!-- Caja de re-solicitud de foto de rostro por el docente -->
+                <div id="re-upload-photo-box" class="mig187">
+                    <p class="mig188">
+                        ⚠️ Tu docente solicitó que subas una foto clara de tu rostro real para completar la identificación.
+                    </p>
+                    <label for="re-foto-input" class="btn-primary mig189">
+                        📷 Subir Foto Real del Rostro Ahora
+                    </label>
+                    <input type="file" id="re-foto-input" accept="image/*" capture="user" class="mig18">
+                    <p id="re-foto-feedback" class="feedback mig186"></p>
+                </div>
+                <div id="auto-form-container" class="mig190">
+                    <h3 id="auto-form-title" class="mig191">📝 Mis datos</h3>
+                    <form id="auto-form">
+                        <div class="form-grid" id="auto-fields-container"></div>
+                        <button type="submit" id="auto-form-submit" class="btn-primary mig192"
+                           >
+                            💾 GUARDAR MIS DATOS
+                        </button>
+                        <p id="auto-msg-feedback" class="feedback"></p>
+                    </form>
+                </div>
+                <div class="mig193">
+                    🔒 Dispositivo vinculado de forma segura por cookie.
+                </div>
+            </section>
+
+            <section class="card glass mig194">
+                <button id="btn-public-grupos" class="btn-primary mig195">
+                    👥 Ver Grupos del Curso y Miembros
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para ver grupos en vista alumno -->
+    <div id="public-grupos-modal" class="modal">
+        <div class="modal-content glass mig196">
+            <span class="close-modal" id="close-public-grupos-modal">&times;</span>
+            <h2 class="mig197">👥 Integrantes por Grupo</h2>
+            <div id="public-grupos-container" class="mig198">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>

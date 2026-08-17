@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Docente</title>
+    <link rel="stylesheet" href="style.css?v=20260815">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Pantalla de Login (protegida) -->
+    <div id="login-screen" class="mig1">
+        <div class="card glass mig2">
+            <h1 class="mig3">🔒 Panel del Docente</h1>
+            <p class="mig4">Ingresa la contraseña para acceder a la administración.</p>
+            <form id="login-form" class="mig5">
+                <label for="login-pass" class="mig6">Contraseña:</label>
+                <div class="mig7">
+                    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" class="mig8">
+                    <button type="button" id="btn-toggle-pass" title="Mostrar / ocultar contraseña" class="mig9">👁️</button>
+                </div>
+                <button type="submit" class="btn-primary mig10">
+                    🔑 Ingresar
+                </button>
+                <p id="login-default-hint" class="mig11"></p>
+                <p id="login-error" class="mig12"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla de Cambio de Contraseña (obligatoria en primer ingreso y voluntaria desde el panel) -->
+    <div id="change-pass-screen" class="mig13">
+        <div class="card glass mig2">
+            <h1 class="mig14">🔐 Cambiar Contraseña</h1>
+            <p id="change-pass-title" class="mig4">Ingresá la contraseña actual y definí una nueva.</p>
+            <form id="change-pass-form" class="mig5">
+                <label for="change-pass-current" class="mig6">Contraseña actual:</label>
+                <div class="mig15">
+                    <input type="password" id="change-pass-current" placeholder="••••••••" autocomplete="current-password" class="mig8">
+                    <button type="button" class="btn-toggle-pass-2 mig9" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <label for="change-pass-new" class="mig6">Nueva contraseña:</label>
+                <div class="mig15">
+                    <input type="password" id="change-pass-new" placeholder="••••••••" autocomplete="new-password" class="mig8">
+                    <button type="button" class="btn-toggle-pass-2 mig9" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <label for="change-pass-confirm" class="mig6">Repetir nueva contraseña:</label>
+                <div class="mig7">
+                    <input type="password" id="change-pass-confirm" placeholder="••••••••" autocomplete="new-password" class="mig8">
+                    <button type="button" class="btn-toggle-pass-2 mig9" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <button type="submit" class="btn-primary mig10">
+                    💾 Cambiar Contraseña
+                </button>
+                <p id="change-pass-error" class="mig12"></p>
+                <p id="change-pass-success" class="mig16"></p>
+            </form>
+            <button id="btn-cancel-change-pass" class="mig17">
+                ✖ Cancelar
+            </button>
+        </div>
+    </div>
+
+    <div id="admin-app" class="mig18">
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>Panel del Docente</h1>
+                    <p>Gestiona el curso, toma asistencia y visualiza datos en tiempo real</p>
+                </div>
+
+                <!-- Selector de Curso Principal -->
+                <div class="card glass mig19">
+                    <label for="curso-select" class="mig20">
+                        📘 Curso Activo:
+                    </label>
+                    <select id="curso-select" class="mig21">
+                        <option value="">Cargando cursos...</option>
+                    </select>
+                    <p id="active-status" class="mig22"></p>
+                </div>
+
+                <button id="btn-change-pass-header" class="btn-primary mig23">
+                    🔑 Cambiar Contraseña
+                </button>
+            </div>
+
+            <!-- Navegación por Pestañas Modulares Superiores -->
+            <div class="nav-tabs-container">
+                <div class="nav-tabs">
+                    <button class="tab-button active" data-tab="tab-alumnos">
+                        🎓 Manejo de Alumnos
+                    </button>
+                    <button class="tab-button" data-tab="tab-formulario">
+                        ⚙️ Formularios
+                    </button>
+                    <button class="tab-button" data-tab="tab-asistencia">
+                        📲 Lista y QR
+                    </button>
+                    <button class="tab-button" data-tab="tab-asist-historica">
+                        📜 AsistHistórica
+                    </button>
+                    <button class="tab-button" data-tab="tab-estadisticas">
+                        📊 Estadísticas
+                    </button>
+                    <button class="tab-button" data-tab="tab-grupos">
+                        👥 Grupos
+                    </button>
+                    <button class="tab-button" data-tab="tab-exportar">
+                        📥 Exportar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <!-- 1. MÓDULO: MANEJO DE ALUMNOS -->
+            <div id="tab-alumnos" class="tab-content active">
+                <section class="card glass">
+                    <div class="mig24">
+                        <div>
+                            <h2 class="mig25">🎓 Nómina General de Alumnos</h2>
+                            <p class="mig26">
+                                Consulta la lista del curso, agrega nuevos alumnos o edita/elimina registros existentes.
+                            </p>
+                        </div>
+                        <button id="btn-toggle-add-alumno" class="btn-secondary mig27">
+                            ➕ Abrir Formulario
+                        </button>
+                        <button id="btn-toggle-borrados" class="btn-secondary mig27">
+                            🚫 Mostrar borrados
+                        </button>
+                    </div>
+
+                    <!-- Formulario Desplegable para Alta de Alumno -->
+                    <div id="form-add-alumno-container" class="mig28">
+                        <h3 class="mig29">➕ Agregar Nuevo Alumno Manualmente</h3>
+                        <div class="mig30">
+                            <div>
+                                <label class="mig31">Nombre:</label>
+                                <input type="text" id="add-alumno-nombre" placeholder="ej. Juan Carlos" class="mig32">
+                            </div>
+                            <div>
+                                <label class="mig31">Apellido:</label>
+                                <input type="text" id="add-alumno-apellido" placeholder="ej. Pérez" class="mig32">
+                            </div>
+                            <div>
+                                <label class="mig31">DNI / ID:</label>
+                                <input type="text" id="add-alumno-dni" placeholder="ej. 35123456" class="mig32">
+                            </div>
+                            <div>
+                                <label class="mig31">Grupo:</label>
+                                <input type="text" id="add-alumno-grupo" placeholder="ej. GRUPO A" class="mig32">
+                            </div>
+                            <div>
+                                <label class="mig31">Título / Profesión:</label>
+                                <select id="add-alumno-titulo" class="mig32">
+                                    <option value="LICENCIADO">LICENCIADO</option>
+                                    <option value="ABOGADO">ABOGADO</option>
+                                    <option value="ARQUITECTO">ARQUITECTO</option>
+                                    <option value="COMUNICADOR">COMUNICADOR</option>
+                                    <option value="CONTADOR">CONTADOR</option>
+                                    <option value="DOCENTE">DOCENTE</option>
+                                    <option value="ENFERMERO">ENFERMERO</option>
+                                    <option value="IMAGENOLOGO">IMAGENOLOGO</option>
+                                    <option value="INGENIERO">INGENIERO</option>
+                                    <option value="MEDICO">MEDICO</option>
+                                    <option value="NUTRICIONISTA">NUTRICIONISTA</option>
+                                    <option value="POLITOLOGO">POLITOLOGO</option>
+                                    <option value="PSICOLOGO">PSICOLOGO</option>
+                                    <option value="RADIOLOGO">RADIOLOGO</option>
+                                    <option value="SISTEMAS">SISTEMAS / INFORMATICO</option>
+                                    <option value="VETERINARIO">VETERINARIO</option>
+                                    <option value="OTRO">OTRO</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="mig31">Nivel Tecnológico:</label>
+                                <select id="add-alumno-tecnologia" class="mig32">
+                                    <option value="MODERADO">MODERADO</option>
+                                    <option value="AVANZADO">AVANZADO</option>
+                                    <option value="TEMEROSO">TEMEROSO</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mig33">
+                            <label class="mig34">
+                                <input type="checkbox" id="add-alumno-marcar-presente" class="mig35">
+                                ✅ Marcar PRESENTE inmediatamente para el día de hoy
+                                <span class="mig36">(solo para alumnos sin celular/registro manual; el presente normal se da cuando el alumno completa sus datos)</span>
+                            </label>
+                            <button id="btn-guardar-nuevo-alumno" class="btn-primary mig37">
+                                💾 Guardar Alumno en Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Tarjetas de Alumnos -->
+                    <div id="alumnos-status-list" class="status-grid">
+                        <p class="mig38">Selecciona un curso para ver los alumnos...</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 2. MÓDULO: CONFIGURACIÓN DEL FORMULARIO Y VISTA ALUMNO -->
+            <div id="tab-formulario" class="tab-content">
+                <section class="card glass">
+                    <div class="mig39">
+                        <div>
+                            <h2 class="mig40">⚙️ Configuración del Formulario para Alumnos</h2>
+                            <p class="mig26">
+                                Elige los datos que se le solicitarán al estudiante cuando escanee el código QR y clasifícalos como Personales o de Clase.
+                            </p>
+                        </div>
+                        <div class="mig41">
+                            <button id="btn-uncheck-all" class="btn-secondary mig42" title="Desmarca todas las casillas activas sin borrar los campos para volver a usarlos luego">
+                                🧹 Desmarcar Todas las Tildes
+                            </button>
+                            <button id="btn-student-view" class="btn-secondary mig43">
+                                👤 Probar Vista Alumno (Demo)
+                            </button>
+                        </div>
+                    </div>
+
+                    <h3 class="mig44">📋 Campos Estándar del Sistema</h3>
+                    <div id="standard-fields-container" class="mig45">
+                        <!-- Cargados dinámicamente -->
+                    </div>
+
+                    <h3 class="mig46">➕ Campos Personalizados</h3>
+                    <div id="custom-fields-container" class="mig47">
+                        <!-- Campos personalizados -->
+                    </div>
+
+                    <div class="mig48">
+                        <h4 class="mig49">Crear Nuevo Campo Personalizado</h4>
+                        <div class="mig50">
+                            <div class="mig51">
+                                <label class="mig52">Nombre / Etiqueta del Campo:</label>
+                                <input type="text" id="new-field-label" placeholder="Ej. Legajo, Tarea del día, Comentario..." class="mig53">
+                            </div>
+                            <div class="mig54">
+                                <label class="mig52">Tipo de Entrada:</label>
+                                <select id="new-field-type" class="mig53">
+                                    <option value="text">Texto Plano</option>
+                                    <option value="number">Número</option>
+                                    <option value="select">Desplegable</option>
+                                </select>
+                            </div>
+                            <div class="mig55">
+                                <label class="mig52">Categoría del Dato:</label>
+                                <select id="new-field-category" class="mig53">
+                                    <option value="clase">📚 Dato de Clase</option>
+                                    <option value="personal">👤 Dato Personal</option>
+                                </select>
+                            </div>
+                            <div id="new-field-options-group" class="mig56">
+                                <label class="mig52">Opciones (separadas por coma):</label>
+                                <input type="text" id="new-field-options" placeholder="Opción 1, Opción 2, Opción 3" class="mig53">
+                            </div>
+                            <div class="mig57">
+                                <input type="checkbox" id="new-field-required" class="mig35">
+                                <label for="new-field-required" class="mig58">¿Obligatorio?</label>
+                            </div>
+                            <button id="btn-add-custom-field" class="btn-primary mig59">
+                                ➕ Agregar Campo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Asistencia tardía: auto-presente al llegar después de tomar lista -->
+                    <div class="mig60">
+                        <h4 class="mig61">⏰ Asistencia Tardía (Llegada después de tomar lista)</h4>
+                        <p class="mig62">
+                            Si un alumno escanea el QR después de que tomes lista y quedó marcado como AUSENTE/TARDE,
+                            puede marcarse él mismo como <b>PRESENTE TARDÍO</b> desde su celular (cuenta como presente, con su hora de llegada).
+                            Siempre podés volver a guardar la lista y corregirlo manualmente.
+                        </p>
+                        <div class="mig63">
+                            <label class="mig64">
+                                <input type="checkbox" id="asistencia-permitir-tardio" class="mig35">
+                                Permitir el presente tardío del alumno
+                            </label>
+                            <div class="mig65">
+                                <label for="asistencia-hora-limite" class="mig66">Hora límite (HH:MM, vacío = todo el día):</label>
+                                <input type="time" id="asistencia-hora-limite" class="mig67">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mig68">
+                        <button id="btn-save-config" class="btn-primary mig69">
+                            💾 Guardar Configuración
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 3. MÓDULO: PASE DE LISTA Y CÓDIGO QR -->
+            <div id="tab-asistencia" class="tab-content">
+                <!-- Reloj de presente y detección automática de tardanza -->
+                <section class="card glass tardanza-panel">
+                    <div class="tardanza-reloj-bar">
+                        <div id="reloj-tardanza" class="reloj-tardanza">🕒 --:--:--</div>
+                        <button id="btn-tomar-lista" class="btn-secondary" type="button">📋 Tomar lista</button>
+                        <span id="toma-lista-estado" class="toma-lista-estado"></span>
+                    </div>
+                    <div class="tardanza-config">
+                        <h3>⏰ Tardanza automática</h3>
+                        <div class="tardanza-modos">
+                            <label><input type="radio" name="tardanza-modo" value="manual" checked> Manual (sin auto)</label>
+                            <label><input type="radio" name="tardanza-modo" value="horario"> Horario fijo de clase</label>
+                            <label><input type="radio" name="tardanza-modo" value="desplist"> Minutos tras tomar lista</label>
+                        </div>
+                        <div id="tardanza-horario" class="tardanza-sub" hidden>
+                            <label>Hora de inicio: <input type="time" id="tardanza-hora-inicio"></label>
+                            <label>Margen de gracia (min): <input type="number" id="tardanza-margen" min="0" value="0"></label>
+                        </div>
+                        <div id="tardanza-desplist" class="tardanza-sub" hidden>
+                            <label>Minutos tras tomar lista: <input type="number" id="tardanza-min-despues" min="1" value="30"></label>
+                        </div>
+                        <button id="btn-guardar-tardanza" class="btn-primary" type="button">💾 Guardar configuración</button>
+                        <span id="tardanza-guardado" class="tardanza-guardado"></span>
+                    </div>
+                </section>
+                <section class="card glass">
+                    <div class="mig70">
+                        <div class="mig71">
+                            <h2 class="mig72">📲 Pase de Lista y Escaneo QR</h2>
+                            <p class="mig73">
+                                Proyecta el código QR para que los alumnos escaneen desde sus celulares. Los nombres marcados se iluminarán automáticamente en verde.
+                            </p>
+                            
+                            <div class="mig74">
+                                <div>
+                                    <label for="asistencia-fecha-input" class="mig75">Fecha del Día:</label>
+                                    <input type="date" id="asistencia-fecha-input" class="mig76">
+                                </div>
+                                <div class="mig79">
+                                    <button id="btn-marcar-todos-presentes" class="btn-secondary mig80">
+                                        ✅ Marcar Todos Presentes
+                                    </button>
+                                    <button id="btn-guardar-asistencia-fecha" class="btn-primary mig81">
+                                        💾 Guardar Asistencia de Hoy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Código QR Proyectado -->
+                        <div id="qr-container" class="qr-box glass mig82" title="Haz clic para agrandar el QR">
+                            <img id="qr-image" src="" alt="QR Access">
+                            <span>🔍 Agrandar QR</span>
+                        </div>
+                    </div>
+
+                    <!-- Lista en vivo del presente de HOY (se ilumina al escanear el QR) -->
+                    <div class="mig5">
+                        <div id="alumnos-status-list-asistencia" class="status-grid status-grid-compact"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 3b. MÓDULO: HISTORIAL DE ASISTENCIA -->
+            <div id="tab-asist-historica" class="tab-content">
+                <section class="card glass">
+                    <div class="mig83">
+                        <div>
+                            <h2 class="mig84">📜 Historial de Asistencia</h2>
+                            <p class="mig26">
+                                Consulta la asistencia registrada por fecha y visualiza presentes, tardes y ausentes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Consulta del Histórico de Asistencia -->
+                    <div class="mig85">
+                        <div class="mig86">
+                            <span class="mig87">📅 Consultar Asistencia Histórica:</span>
+                            <select id="consultar-asistencia-select" class="mig88">
+                                <option value="">-- Seleccionar fecha previa --</option>
+                            </select>
+                            <button id="btn-consultar-asistencia" class="btn-secondary mig89">
+                                🔍 Ver
+                            </button>
+                        </div>
+                        <div id="resumen-asistencia-badge" class="mig90"></div>
+                    </div>
+
+                    <!-- Eliminar un día de asistencia (movido desde Lista y QR) -->
+                    <div class="mig85" style="margin-top:1.2rem;">
+                        <div class="mig86">
+                            <span class="mig87">🗑️ Eliminar día de asistencia:</span>
+                            <select id="borrar-fecha-select" class="mig88">
+                                <option value="">Selecciona una fecha guardada</option>
+                            </select>
+                            <button id="btn-borrar-dia-asistencia" class="btn-secondary mig89">
+                                 🗑️ Borrar Día
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Reparar historial: asegurar AUSENTES desde hoy para alumnos sin registro -->
+                    <div class="mig85" style="margin-top:0.8rem;">
+                        <button id="btn-sync-ausentes" class="btn-secondary mig89">
+                            🔄 Sincronizar Ausentes Faltantes (desde hoy)
+                        </button>
+                    </div>
+
+                    <!-- Tabla de Asistencia Histórica -->
+                    <div id="tabla-asistencia-historica-container" class="mig91">
+                        <table class="mig92">
+                            <thead>
+                                <tr class="mig93">
+                                    <th class="mig94">Alumno</th>
+                                    <th class="mig94">DNI</th>
+                                    <th class="mig94">Grupo</th>
+                                    <th class="mig95">Estado</th>
+                                    <th class="mig95">Hora Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-asistencia-historica-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 4. MÓDULO: ESTADÍSTICAS POR FECHA Y GENERAL -->
+            <div id="tab-estadisticas" class="tab-content">
+                <div class="nav-tabs mig96">
+                    <button id="btn-estad-datos" class="tab-button estad-subtab" type="button">📊 Datos del Formulario</button>
+                    <button id="btn-estad-presentismo" class="tab-button estad-subtab active" type="button">📋 Presentismo / Ausencias</button>
+                </div>
+
+                <section class="card glass stats-section mig18" id="estad-datos-panel">
+                    <div class="mig97">
+                        <h2 class="mig98">📊 Estadísticas y Muestra de Datos</h2>
+                        <p class="mig99">Filtra por fecha, variable a analizar y grupo objetivo para generar gráficos y resúmenes.</p>
+                    </div>
+
+                    <!-- Panel de Filtros de Estadísticas -->
+                    <div class="mig100">
+                        <div class="mig101">
+                            <div>
+                                <label for="stats-date-select" class="mig102">
+                                    📅 Pestaña / Fecha:
+                                </label>
+                                <select id="stats-date-select" class="mig103">
+                                    <option value="TODOS">🌐 Acumulado General (Todas las Fechas)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="stats-field-select" class="mig104">
+                                    📌 Campo a Analizar:
+                                </label>
+                                <select id="stats-field-select" class="mig103">
+                                    <option value="titulo">Título Profesional / Especialidad</option>
+                                    <option value="tecnologia">Relación con la Tecnología</option>
+                                    <option value="grupo">Grupo de Trabajo</option>
+                                    <option value="asistencia">Asistencia (Presente / Tarde / Ausente)</option>
+                                    <option value="dni">DNI / ID</option>
+                                    <option value="email">Email Privado</option>
+                                    <option value="telefono">Teléfono</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="stats-group-select" class="mig105">
+                                    👥 Grupo Objetivo:
+                                </label>
+                                <select id="stats-group-select" class="mig103">
+                                    <option value="TODOS">🌐 Todos los Grupos (General)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="stats-format-select" class="mig106">
+                                    🎨 Formato Visual:
+                                </label>
+                                <select id="stats-format-select" class="mig103">
+                                    <option value="bar">📊 Gráfico de Barras</option>
+                                    <option value="doughnut">🍩 Gráfico de Dona</option>
+                                    <option value="pie">🥧 Gráfico de Torta (Pie)</option>
+                                    <option value="line">📈 Gráfico de Líneas</option>
+                                    <option value="polarArea">🕸️ Gráfico Radar / Área Polar</option>
+                                    <option value="table">📋 Tabla Resumen de Frecuencias (%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Muestra Gráfica / Tabla -->
+                    <div class="mig107">
+                        <h3 id="stats-dynamic-header" class="mig108">
+                            Distribución Estadística
+                        </h3>
+
+                        <div id="dynamicChartContainer" class="chart-container mig109">
+                            <canvas id="dynamicChart"></canvas>
+                        </div>
+
+                        <div id="dynamicTableContainer" class="mig110">
+                            <table class="mig111">
+                                <thead>
+                                    <tr class="mig112">
+                                        <th class="mig113">Categoría / Valor</th>
+                                        <th class="mig114">Cantidad de Alumnos</th>
+                                        <th class="mig114">Porcentaje (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Ausencias por Alumno y por Mes -->
+                <section class="card glass mig5" id="estad-presentismo-panel">
+                    <h3 class="mig115">📋 Ausencias por Alumno y por Mes</h3>
+                    <p class="mig116">
+                        Presentes, tardes y ausencias de cada alumno desglosados por mes, ordenados por porcentaje de ausencia.
+                    </p>
+
+                    <div class="mig117">
+                        <div>
+                            <label for="aus-mes-select" class="mig118">📅 Mes:</label>
+                            <select id="aus-mes-select" class="mig119">
+                                <option value="">🌐 Todos los Meses</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="aus-grupo-select" class="mig105">👥 Grupo Objetivo:</label>
+                            <select id="aus-grupo-select" class="mig119">
+                                <option value="TODOS">🌐 Todos los Grupos (General)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tabla resumen por alumno -->
+                    <div class="mig120">
+                        <h4 class="mig121">🗂️ Resumen por Alumno</h4>
+                        <table id="aus-tabla-alumno" class="mig122">
+                            <thead id="aus-tabla-alumno-head">
+                                <tr class="mig123">
+                                        <th class="aus-sortable mig124" data-key="alumno" title="Ordenar">Alumno</th>
+                                        <th class="aus-sortable mig125" data-key="presentes" title="Ordenar">Presentes</th>
+                                        <th class="aus-sortable mig125" data-key="tardes" title="Ordenar">Tardes</th>
+                                        <th class="aus-sortable mig125" data-key="ausencias" title="Ordenar">Ausencias</th>
+                                        <th class="aus-sortable mig125" data-key="total" title="Ordenar">Total</th>
+                                        <th class="aus-sortable mig125" data-key="pctPresentismo" title="Ordenar">% Presentismo</th>
+                                        <th class="aus-sortable mig125" data-key="pctAusencia" title="Ordenar">% Ausencia</th>
+                                    </tr>
+                            </thead>
+                            <tbody id="aus-tabla-alumno-body"></tbody>
+                            <tfoot id="aus-tabla-alumno-tfoot"></tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Matriz de ausencias por mes -->
+                    <div class="mig126">
+                        <h4 class="mig121">📆 Ausencias por Mes</h4>
+                        <table id="aus-matriz" class="mig127">
+                            <thead id="aus-matriz-head">
+                                <tr class="mig112">
+                                    <th class="mig128">Alumno</th>
+                                    <th class="mig94">—</th>
+                                    <th class="mig94">% Aus. Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aus-matriz-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 5. MÓDULO: GRUPOS DE TRABAJO -->
+            <div id="tab-grupos" class="tab-content">
+                <section class="card glass">
+                    <div class="mig97">
+                        <h2 class="mig129">👥 Conformación de Grupos de Trabajo</h2>
+                        <p class="mig26">Consulta los equipos creados y sus miembros integrados.</p>
+                    </div>
+                    <div id="grupos-cards-container" class="mig130">
+                        <!-- Tarjetas de grupos -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- 6. MÓDULO: EXPORTAR REPORTES -->
+            <div id="tab-exportar" class="tab-content">
+                <section class="card glass">
+                    <h2 class="mig131">📥 Exportación de Reportes Completo</h2>
+                    <p class="mig132">
+                        Descarga toda la información acumulada del curso (alumnos, asistencias por fecha, grupos y estadísticas) en diferentes formatos formateados.
+                    </p>
+                    <div class="mig133">
+                        <button id="btn-export-excel" class="btn-primary mig134">
+                            🟢 Exportar a Excel (.xlsx)
+                        </button>
+                        <button id="btn-export-word" class="btn-primary mig135">
+                            🔵 Exportar a Word (.doc)
+                        </button>
+                        <button id="btn-export-txt" class="btn-secondary mig136">
+                            📄 Exportar Lista de Texto (.txt)
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal">&times;</span>
+            <img id="qr-image-large" src="" alt="QR Access Large">
+            <p>Escanea este código para ingresar</p>
+        </div>
+    </div>
+
+    <div id="student-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-student-modal">&times;</span>
+            <div id="student-details" class="mig137">
+                <div class="mig138">
+                    <div id="modal-student-photo-box">
+                        <img id="modal-student-photo-img" class="student-avatar-lg mig18" src="">
+                        <div id="modal-student-photo-placeholder" class="student-avatar-lg mig139">👤</div>
+                    </div>
+                    <div>
+                        <h2 id="modal-student-name" class="mig140">Detalles del Alumno</h2>
+                        <button id="btn-modal-delete-photo" class="btn-delete-foto mig141">
+                            🗑️ Borrar Foto de Rostro y Solicitar Nueva
+                        </button>
+                    </div>
+                </div>
+                <div class="status-grid mig142">
+                    <p><strong>Email:</strong> <span id="det-email">-</span></p>
+                    <p><strong>DNI/ID:</strong> <span id="det-dni">-</span></p>
+                    <p><strong>Título:</strong> <span id="det-titulo">-</span></p>
+                    <p><strong>Tecnología:</strong> <span id="det-tecnologia">-</span></p>
+                    <p><strong>Grupo:</strong> <span id="det-grupo">-</span></p>
+                    <p><strong>Teléfono:</strong> <span id="det-tel">-</span></p>
+                    <p><strong>Fecha Registro:</strong> <span id="det-fecha">-</span></p>
+                </div>
+                <div class="mig120" style="margin-top:1rem;">
+                    <h4 class="mig121">📊 Presentismo</h4>
+                    <div id="det-presentismo" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                </div>
+                <div class="mig143">
+                    <button id="btn-modal-editar-alumno" class="btn-primary mig144">
+                        ✏️ Editar Datos
+                    </button>
+                    <button id="btn-modal-borrar-alumno" class="btn-secondary mig145">
+                        🚫 Borrar (ocultar)
+                    </button>
+                    <button id="btn-modal-borrar-definitivo" class="btn-primary mig145" style="background:#b91c1c;">
+                        ❌ Borrado Definitivo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-student-modal" class="modal">
+        <div class="modal-content glass mig146">
+            <span class="close-modal" id="close-edit-modal">&times;</span>
+            <h2 class="mig147">✏️ Modificar Alumno (Exclusivo Docente)</h2>
+            <input type="hidden" id="edit-nombre-original">
+            <div class="mig148">
+                <div>
+                    <label class="mig31">Nombre:</label>
+                    <input type="text" id="edit-nombre" class="mig32">
+                </div>
+                <div>
+                    <label class="mig31">Apellido:</label>
+                    <input type="text" id="edit-apellido" class="mig32">
+                </div>
+                <div>
+                    <label class="mig31">DNI / ID:</label>
+                    <input type="text" id="edit-dni" class="mig32">
+                </div>
+                <div>
+                    <label class="mig31">Grupo:</label>
+                    <input type="text" id="edit-grupo" class="mig32">
+                </div>
+                <div>
+                    <label class="mig31">Título / Especialidad:</label>
+                    <input type="text" id="edit-titulo" class="mig32">
+                </div>
+                <div>
+                    <label class="mig31">Email Privado:</label>
+                    <input type="text" id="edit-email" class="mig32">
+                </div>
+            </div>
+            <div class="mig149">
+                <button id="btn-cancelar-edicion" class="btn-secondary mig150">
+                    Cancelar
+                </button>
+                <button id="btn-guardar-edicion-alumno" class="btn-primary mig151">
+                    💾 Guardar Cambios en Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editor de Opciones para Campos Desplegables -->
+    <div id="options-editor-modal" class="modal">
+        <div class="modal-content glass mig152">
+            <span class="close-modal" id="close-options-modal">&times;</span>
+            <h2 id="options-modal-title" class="mig153">⚙️ Gestionar Opciones del Desplegable</h2>
+            <p class="mig154">
+                Agrega, modifica o elimina las alternativas disponibles en este selector.
+            </p>
+
+            <div class="mig155">
+                <input type="text" id="options-new-item" placeholder="Escribe una nueva opción..." class="mig156">
+                <button id="btn-add-option-item" class="btn-primary mig157">
+                    ➕ Agregar
+                </button>
+            </div>
+
+            <div id="options-items-list" class="mig158">
+                <!-- Lista de ítems editable -->
+            </div>
+
+            <div class="mig149">
+                <button id="btn-guardar-opciones-modal" class="btn-primary mig159">
+                    💾 Guardar Opciones
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js?v=20260815b"></script>
+</body>
+
+</html>
