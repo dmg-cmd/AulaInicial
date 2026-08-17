@@ -42,4 +42,7 @@ Presentación/
 Docs/
 AGENTS.md
 *.pdf
+# PDFs de documentación generados desde el repo (se mantienen en GitHub)
+!README.pdf
+!cursos/README_SETUP.pdf
 
