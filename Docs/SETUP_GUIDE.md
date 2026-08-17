@@ -12,8 +12,8 @@ Esta guía paso a paso muestra cómo iniciar el sistema desde USB y comenzar a a
 
 ### Materiales necesarios:
 - Una memoria USB con al menos 2 GB de espacio libre
-- La carpeta **AulaInicial** (descargada desde el repositorio)
-- El ejecutable **AulaInicial-linux** (Linux) o **AulaInicial.exe** (Windows)
+- La carpeta **AulaInicial** (descargada desde el repositorio de GitHub)
+- El ejecutable **AulaInicial-linux** (Linux) o **AulaInicial.exe** (Windows), descargado desde **GitHub Releases** (etiqueta `v4.0.0`); desde la v4.0.0 los binarios ya no se incluyen en el repositorio
 
 ### Instrucciones:
 
@@ -122,7 +122,7 @@ Si algún alumno no aparece en la lista (por ejemplo, fue re-agregado sin comple
 
 ---
 
-## ⏰ Nuevo en v2.14.0: Reloj de tardanza y llegada tarde
+## ⏰ Reloj de tardanza y llegada tarde
 
 El módulo **"📲 Lista y QR"** ahora incluye un **reloj en vivo** y control de llegadas tarde:
 
@@ -245,7 +245,7 @@ Este documento se puede guardar como PDF y imprimir para consulta rápida del do
 
 ---
 
-**Versión:** 3.0.0
+**Versión:** 4.0.0
 **Fecha:** 17 de agosto de 2026
 **Contacto:** docente@aulainicial.org
 
