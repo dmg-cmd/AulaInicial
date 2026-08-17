@@ -1,0 +1,100 @@
+{
+  "standardFields": {
+    "email": {
+      "label": "Email Privado",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "options": []
+    },
+    "dni": {
+      "label": "DNI / ID",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "options": []
+    },
+    "titulo": {
+      "label": "Título Profesional / Especialidad",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "type": "select",
+      "options": [
+        "LICENCIADO",
+        "ABOGADO",
+        "ARQUITECTO",
+        "COMUNICADOR",
+        "CONTADOR",
+        "DOCENTE",
+        "ENFERMERO",
+        "IMAGENOLOGO",
+        "INGENIERO",
+        "MEDICO",
+        "NUTRICIONISTA",
+        "POLITOLOGO",
+        "PSICOLOGO",
+        "RADIOLOGO",
+        "SISTEMAS",
+        "VETERINARIO",
+        "OTRO",
+        "ACTOR"
+      ]
+    },
+    "tecnologia": {
+      "label": "Relación con la Tecnología",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "type": "select",
+      "options": [
+        "AVANZADO",
+        "MODERADO",
+        "TEMEROSO"
+      ]
+    },
+    "grupo": {
+      "label": "Grupo (Una sola palabra)",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "options": []
+    },
+    "telefono": {
+      "label": "Teléfono (Opcional)",
+      "enabled": false,
+      "required": false,
+      "category": "personal",
+      "options": []
+    },
+    "foto": {
+      "label": "Foto Real del Rostro (Identificación Visual)",
+      "enabled": false,
+      "required": true,
+      "category": "personal",
+      "options": []
+    }
+  },
+  "customFields": [
+    {
+      "id": "custom_1786993752212",
+      "label": "¿Qué te parece una tarea por semana?",
+      "name": "¿Qué te parece una tarea por semana?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Totalmente adecuada",
+        "Adecuada con flexibilidad",
+        "Preferible quincenal / modular",
+        "Opcional / Formativa"
+      ],
+      "enabled": true,
+      "required": false
+    }
+  ],
+  "asistencia": {
+    "permitirPresenteTardio": true,
+    "horaLimite": ""
+  },
+  "cursoPreferido": "TTE - PDS Inspt agosto 2025.xlsx"
+}
