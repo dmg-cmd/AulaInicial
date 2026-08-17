@@ -91,10 +91,10 @@ npm run build:linux    # bin/AulaInicial-linux (node22-linux-x64)
 
 ## 📌 Notas de versión
 
-La versión vive en [`package.json`](package.json) y sigue SemVer. Ver historial de commits para los cambios por versión (p. ej. `v4.0.0`).
+La versión vive en [`package.json`](package.json) y sigue SemVer. Ver historial de commits para los cambios por versión (p. ej. `v4.1.0`).
 
 ### Descarga de los ejecutables (docentes)
-El código fuente se versiona en este repositorio; los binarios compilados (`AulaInicial.exe` para Windows y `AulaInicial-linux` para Linux) **no se guardan en el repo** (superan el límite de 100 MB de GitHub). Se generan automáticamente con `npm run build` y se publican en **[Releases](https://github.com/dmg-cmd/AulaInicial/releases)** en cada etiqueta `v*`. El docente solo descarga el ejecutable correspondiente y lo corre (no necesita Node ni npm).
+El código fuente se versiona en este repositorio; los binarios compilados (`AulaInicial.exe` para Windows y `AulaInicial-linux` para Linux) **no se guardan en el repo** (superan el límite de 100 MB de GitHub). Se generan automáticamente con `npm run build` y se publican en **[Releases](https://github.com/dmg-cmd/AulaInicial/releases)** en cada etiqueta `v*`. El docente **no necesita descargarlos ni instalar Node**: al ejecutar `start.sh`/`start.bat` por primera vez, el script descarga solo el binario desde Releases (requiere internet esa vez) y lo guarda en la carpeta `bin/` del USB para las siguientes ejecuciones.
 
 ---
 

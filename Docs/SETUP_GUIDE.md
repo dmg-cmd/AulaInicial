@@ -13,7 +13,7 @@ Esta guía paso a paso muestra cómo iniciar el sistema desde USB y comenzar a a
 ### Materiales necesarios:
 - Una memoria USB con al menos 2 GB de espacio libre
 - La carpeta **AulaInicial** (descargada desde el repositorio de GitHub)
-- El ejecutable **AulaInicial-linux** (Linux) o **AulaInicial.exe** (Windows), descargado desde **GitHub Releases** (etiqueta `v4.0.0`); desde la v4.0.0 los binarios ya no se incluyen en el repositorio
+- El ejecutable **AulaInicial-linux** (Linux) o **AulaInicial.exe** (Windows) se descarga **automáticamente** la primera vez que ejecutas `start.sh`/`start.bat` (desde **GitHub Releases**, etiqueta `latest`) y se guarda en la carpeta `bin/` del USB. No hace falta buscarlo ni instalar Node.js: el script lo hace solo (requiere internet solo esa primera vez).
 
 ### Instrucciones:
 
@@ -245,7 +245,7 @@ Este documento se puede guardar como PDF y imprimir para consulta rápida del do
 
 ---
 
-**Versión:** 4.0.0
+**Versión:** 4.1.0
 **Fecha:** 17 de agosto de 2026
 **Contacto:** docente@aulainicial.org
 
