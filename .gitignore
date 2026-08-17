@@ -33,3 +33,13 @@ registros/fotos/
 
 # Ejecutables compilados (se generan con `npm run build` y se distribuyen por GitHub Releases)
 bin/
+
+# Archivos ajenos a la app (reglas para agentes de IA, documentación, presentación)
+# Se mantienen en disco para uso local pero NO se suben a GitHub.
+.agents/
+.opencode/
+Presentación/
+Docs/
+AGENTS.md
+*.pdf
+
