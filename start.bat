@@ -7,15 +7,17 @@ REM 1) Binario ya presente (incluido el descargado antes)
 if exist bin\AulaInicial.exe goto :run_exe
 if exist bin\FormInicial.exe goto :run_exe_form
 
-REM 2) Node del sistema
+REM 2) Node del sistema CON dependencias instaladas
 where node >nul 2>nul
-if %errorlevel%==0 goto :run_node
+if %errorlevel%==0 (
+    if exist node_modules goto :start_server
+)
 
-REM 3) Sin binario y sin Node: intentar descargar desde Releases
+REM 3) Intentar descargar el binario desde Releases (un solo archivo, mas rapido que npm install)
 echo =============================================================
 echo   AVISO: Este programa necesita descargar un componente la
-echo   primera vez (requiere conexion a internet). Solo tardara
-echo   unos minutos y luego quedara guardado en su USB.
+echo   primera vez. Solo tardara unos minutos y luego quedara
+echo   guardado en su USB.
 echo =============================================================
 timeout /t 2 >nul
 set "URL=https://github.com/dmg-cmd/AulaInicial/releases/latest/download/AulaInicial.exe"
@@ -23,10 +25,16 @@ if not exist bin mkdir bin
 echo [INFO] Descargando AulaInicial (no cierre esta ventana)...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try { Invoke-WebRequest -Uri '%URL%' -OutFile 'bin\AulaInicial.exe' -MaximumRedirection 10 -ErrorAction Stop } catch { Write-Host $_.Exception.Message; exit 1 }"
 if exist bin\AulaInicial.exe goto :run_exe
+echo [AVISO] No se pudo descargar el binario automaticamente.
+
+REM 4) Si hay Node pero fallo la descarga, intentar npm install como ultimo recurso
+where node >nul 2>nul
+if %errorlevel%==0 goto :run_node_install
+
+REM Nada funciono: mostrar error
 echo.
-echo [ERROR] No se pudo descargar el binario. Verifique su conexion
-echo         a internet o descargue AulaInicial.exe manualmente
-echo         desde GitHub Releases y coloquelo en la carpeta bin\.
+echo [ERROR] No se pudo obtener el programa. Verifique su conexion
+echo         a internet o pida ayuda para instalarlo.
 pause
 goto :eof
 
@@ -46,10 +54,18 @@ echo [AVISO] El programa se cerro.
 pause
 goto :eof
 
-:run_node
-echo [INFO] Node.js detectado en el sistema.
-if exist node_modules goto :start_server
-echo [INFO] Instalando dependencias por primera vez...
+:start_server
+echo [INFO] Iniciando servidor...
+echo.
+node server.js
+echo.
+echo [AVISO] El servidor se detuvo inesperadamente.
+pause
+goto :eof
+
+:run_node_install
+echo [INFO] Node.js detectado pero sin dependencias.
+echo [INFO] Instalando dependencias (esto puede tardar)...
 call npm install
 if errorlevel 1 (
     echo.
@@ -60,11 +76,4 @@ if errorlevel 1 (
 )
 echo [INFO] Dependencias instaladas correctamente.
 echo.
-
-:start_server
-echo [INFO] Iniciando servidor...
-echo.
-node server.js
-echo.
-echo [AVISO] El servidor se detuvo inesperadamente.
-pause
+goto :start_server
