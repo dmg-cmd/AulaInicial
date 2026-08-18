@@ -65,7 +65,13 @@ goto :eof
 
 :run_node_install
 echo [INFO] Node.js detectado pero sin dependencias.
-echo [INFO] Instalando dependencias (esto puede tardar)...
+echo.
+echo =============================================================
+echo   Por favor tenga paciencia, la instalacion de dependencias
+echo   puede tardar varios minutos la primera vez.
+echo   NO cierre esta ventana.
+echo =============================================================
+echo.
 call npm install
 if errorlevel 1 (
     echo.
