@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alumnos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/index.css">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-text">
+                <h1>Portal de Registro</h1>
+                <p id="course-title">Cargando curso activo...</p>
+            </div>
+        </header>
+
+        <main>
+            <section id="search-section" class="card glass">
+                <h2>Búsqueda de Alumno</h2>
+                <div class="form-group search-box">
+                    <label for="alumno-search">Encuentra tu nombre en la lista:</label>
+                    <input type="text" id="alumno-search" placeholder="Escribe tu nombre o apellido..." autocomplete="off">
+                    <div id="results-list" class="results-list"></div>
+                </div>
+            </section>
+
+            <section id="form-section" class="card glass" style="display:none;">
+                <h2 id="selected-alumno-name">Completa tus Datos</h2>
+                <form id="registro-form">
+                    <div class="form-grid">
+                        <div class="form-group" id="fg-email">
+                            <label for="email">Email Privado</label>
+                            <input type="email" id="email" required placeholder="ejemplo@mail.com">
+                        </div>
+                        <div class="form-group" id="fg-dni">
+                            <label for="dni">DNI / ID</label>
+                            <input type="text" id="dni" required placeholder="Documento de identidad">
+                        </div>
+                        <div class="form-group" id="fg-titulo">
+                            <label for="titulo">Título Profesional / Especialidad</label>
+                            <select id="titulo" required>
+                                <option value="" disabled selected>Selecciona tu título / área...</option>
+                                <option value="ABOGADO">ABOGADO</option>
+                                <option value="ARQUITECTO">ARQUITECTO</option>
+                                <option value="COMUNICADOR">COMUNICADOR</option>
+                                <option value="CONTADOR">CONTADOR</option>
+                                <option value="DOCENTE">DOCENTE</option>
+                                <option value="ENFERMERO">ENFERMERO</option>
+                                <option value="IMAGENOLOGO">IMAGENOLOGO (Tomografía / Ecografía)</option>
+                                <option value="INGENIERO">INGENIERO</option>
+                                <option value="LICENCIADO">LICENCIADO</option>
+                                <option value="MEDICO">MEDICO</option>
+                                <option value="NUTRICIONISTA">NUTRICIONISTA</option>
+                                <option value="POLITOLOGO">POLITOLOGO</option>
+                                <option value="PSICOLOGO">PSICOLOGO</option>
+                                <option value="RADIOLOGO">RADIOLOGO</option>
+                                <option value="SISTEMAS">SISTEMAS / INFORMATICO</option>
+                                <option value="VETERINARIO">VETERINARIO</option>
+                                <option value="OTRO">OTRO</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-tecnologia">
+                            <label for="tecnologia">Relación con la Tecnología</label>
+                            <select id="tecnologia" required>
+                                <option value="" disabled selected>¿Cómo te llevas con la tecnología?</option>
+                                <option value="AVANZADO">AVANZADO (La uso a diario sin problema)</option>
+                                <option value="MODERADO">MODERADO (Uso lo básico, a veces me cuesta)</option>
+                                <option value="TEMEROSO">TEMEROSO (Le tengo resistencia / miedo)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-grupo">
+                            <label for="grupo">Grupo (Una sola palabra)</label>
+                            <select id="grupo" required>
+                                <option value="" disabled selected>Selecciona tu grupo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="fg-telefono">
+                            <label for="telefono">Teléfono (Opcional)</label>
+                            <input type="tel" id="telefono" placeholder="+54 9 ...">
+                        </div>
+
+                        <div class="form-group foto-box" id="fg-foto">
+                            <label class="foto-label">
+                                📷 Foto Real de tu Rostro (Obligatorio)
+                            </label>
+                            <p class="foto-hint">
+                                Toca abajo para tomar o subir una foto de tu cara para que el docente te reconozca en clase.
+                            </p>
+                            <div class="foto-actions">
+                                <div id="foto-preview-box" class="foto-preview">
+                                    <img id="foto-preview-img" class="foto-preview-img" alt="">
+                                </div>
+                                <label for="foto-input" class="btn-primary btn-inline">
+                                    📸 Tomar / Elegir Foto de Rostro
+                                </label>
+                                <input type="file" id="foto-input" accept="image/*" capture="user" hidden>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-grid" id="custom-fields-student-container"></div>
+
+                    <div class="nota-presente">
+                        📌 <strong>Al enviar este formulario se registrará automáticamente tu estado de PRESENTE para la clase de hoy.</strong>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn-enviar">
+                        ✅ DAR MI PRESENTE Y ENVIAR
+                    </button>
+                    <p id="msg-feedback" class="feedback"></p>
+                </form>
+            </section>
+
+            <section id="registered-section" class="card glass" style="display:none;">
+                <div class="registro-icon">✅</div>
+                <h2>¡Registro Exitoso!</h2>
+                <p>Ya has completado tu registro para este curso. Solo se permite un alumno por dispositivo.</p>
+                <div class="registro-nota">Si cometiste un error, solicita al docente que borre tu entrada anterior.</div>
+            </section>
+
+            <section id="auto-registered-section" class="card glass" style="display:none;">
+                <div id="auto-student-photo-box" class="auto-photo-box">
+                    <img id="auto-student-photo-img" class="student-avatar-lg" src="" alt="">
+                </div>
+                <div class="auto-icon">🟢</div>
+                <h2 id="auto-welcome-title">¡Bienvenido!</h2>
+                <div class="auto-msg-box">
+                    <p id="auto-presente-msg">✅ Tu PRESENTE para la clase de hoy ha sido registrado automáticamente.</p>
+                </div>
+
+                <div id="auto-tardio-box" style="display:none;">
+                    <button id="btn-auto-presente-tardio" class="btn-primary btn-tardio">
+                        📝 DAR MI PRESENTE (LLEGUÉ TARDE)
+                    </button>
+                    <p id="auto-tardio-feedback" class="feedback"></p>
+                </div>
+
+                <div id="re-upload-photo-box" style="display:none;">
+                    <p class="re-foto-msg">
+                        ⚠️ Tu docente solicitó que subas una foto clara de tu rostro real para completar la identificación.
+                    </p>
+                    <label for="re-foto-input" class="btn-primary btn-inline btn-re-foto">
+                        📷 Subir Foto Real del Rostro Ahora
+                    </label>
+                    <input type="file" id="re-foto-input" accept="image/*" capture="user" hidden>
+                    <p id="re-foto-feedback" class="feedback"></p>
+                </div>
+
+                <div id="auto-form-container" style="display:none; text-align:left; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.15);">
+                    <h3 id="auto-form-title">📝 Mis datos</h3>
+                    <form id="auto-form">
+                        <div class="form-grid" id="auto-fields-container"></div>
+                        <button type="submit" id="auto-form-submit" class="btn-primary btn-guardar-datos">
+                            💾 GUARDAR MIS DATOS
+                        </button>
+                        <p id="auto-msg-feedback" class="feedback"></p>
+                    </form>
+                </div>
+                <div class="auto-dispositivo">
+                    🔒 Dispositivo vinculado de forma segura por cookie.
+                </div>
+            </section>
+
+            <section class="card glass btn-grupos-section">
+                <button id="btn-public-grupos" class="btn-primary btn-grupos">
+                    👥 Ver Grupos del Curso y Miembros
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <div id="public-grupos-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-public-grupos-modal">&times;</span>
+            <h2>👥 Integrantes por Grupo</h2>
+            <div id="public-grupos-container" class="public-grupos-grid"></div>
+        </div>
+    </div>
+</body>
+</html>

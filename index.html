@@ -20,7 +20,10 @@
     <div class="container">
         <header>
             <div class="header-text mig160">
-                <h1>Portal de Registro</h1>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.65rem; flex-wrap: wrap;">
+                    <h1 style="margin: 0;">Portal de Registro</h1>
+                    <span id="app-version-badge" class="version-badge" title="Versión de AulaInicial">...</span>
+                </div>
                 <p id="course-title">Cargando curso activo...</p>
             </div>
         </header>
@@ -38,18 +41,31 @@
 
             <section id="form-section" class="card glass mig18">
                 <h2 id="selected-alumno-name">Completa tus Datos</h2>
+                
+                <!-- Banner de Asistencia: Informa si el alumno ya dio el presente o si está pendiente hoy -->
+                <div id="asistencia-status-banner" class="asistencia-banner" style="display: none;"></div>
+
                 <form id="registro-form">
                     <div class="form-grid">
                         <div class="form-group" id="fg-email">
-                            <label for="email">Email Privado</label>
+                            <div class="field-header">
+                                <label for="email">Email Privado</label>
+                                <span class="field-status-badge" id="badge-email"></span>
+                            </div>
                             <input type="email" id="email" required placeholder="ejemplo@mail.com">
                         </div>
                         <div class="form-group" id="fg-dni">
-                            <label for="dni">DNI / ID</label>
+                            <div class="field-header">
+                                <label for="dni">DNI / ID</label>
+                                <span class="field-status-badge" id="badge-dni"></span>
+                            </div>
                             <input type="text" id="dni" required placeholder="Documento de identidad">
                         </div>
                         <div class="form-group" id="fg-titulo">
-                            <label for="titulo">Título Profesional / Especialidad</label>
+                            <div class="field-header">
+                                <label for="titulo">Título Profesional / Especialidad</label>
+                                <span class="field-status-badge" id="badge-titulo"></span>
+                            </div>
                             <select id="titulo" required class="mig161">
                                 <option value="" disabled selected>Selecciona tu título / área...</option>
                                 <option value="ABOGADO">ABOGADO</option>
@@ -72,7 +88,10 @@
                             </select>
                         </div>
                         <div class="form-group" id="fg-tecnologia">
-                            <label for="tecnologia">Relación con la Tecnología</label>
+                            <div class="field-header">
+                                <label for="tecnologia">Relación con la Tecnología</label>
+                                <span class="field-status-badge" id="badge-tecnologia"></span>
+                            </div>
                             <select id="tecnologia" required class="mig161">
                                 <option value="" disabled selected>¿Cómo te llevas con la tecnología?</option>
                                 <option value="AVANZADO">AVANZADO (La uso a diario sin problema)</option>
@@ -81,22 +100,31 @@
                             </select>
                         </div>
                         <div class="form-group" id="fg-grupo">
-                            <label for="grupo">Grupo (Una sola palabra)</label>
+                            <div class="field-header">
+                                <label for="grupo">Grupo (Una sola palabra)</label>
+                                <span class="field-status-badge" id="badge-grupo"></span>
+                            </div>
                             <select id="grupo" required class="mig162">
                                 <option value="" disabled selected>Selecciona tu grupo...</option>
                                 <!-- Se llena dinámicamente -->
                             </select>
                         </div>
                         <div class="form-group" id="fg-telefono">
-                            <label for="telefono">Teléfono (Opcional)</label>
+                            <div class="field-header">
+                                <label for="telefono">Teléfono (Opcional)</label>
+                                <span class="field-status-badge" id="badge-telefono"></span>
+                            </div>
                             <input type="tel" id="telefono" placeholder="+54 9 ...">
                         </div>
 
                         <!-- Selector de Foto Real del Rostro -->
                         <div class="form-group mig163" id="fg-foto">
-                            <label class="mig164">
-                                📷 Foto Real de tu Rostro (Obligatorio)
-                            </label>
+                            <div class="field-header">
+                                <label class="mig164">
+                                    📷 Foto Real de tu Rostro (Obligatorio)
+                                </label>
+                                <span class="field-status-badge" id="badge-foto"></span>
+                            </div>
                             <p class="mig165">
                                 Toca abajo para tomar o subir una foto de tu cara para que el docente te reconozca en clase.
                             </p>
@@ -114,27 +142,24 @@
                     <!-- Campos personalizados creados por el docente -->
                     <div class="form-grid mig170" id="custom-fields-student-container"></div>
 
-                    <div class="mig171">
+                    <div id="form-attendance-note" class="mig171">
                         📌 <strong>Al enviar este formulario se registrará automáticamente tu estado de PRESENTE para la clase de hoy.</strong>
                     </div>
 
-                    <button type="submit" class="btn-primary mig172">
+                    <button type="submit" id="btn-submit-registro" class="btn-primary mig172">
                         ✅ DAR MI PRESENTE Y ENVIAR
                     </button>
                     <p id="msg-feedback" class="feedback"></p>
                 </form>
             </section>
 
-            <section id="registered-section" class="card glass mig173"
-               >
-                <div
-                    class="mig174">
-                    ✅</div>
-                <h2 class="mig175">¡Registro Exitoso!</h2>
-                <p class="mig176">Ya has completado tu registro para este curso. Solo se
-                    permite un alumno por dispositivo.</p>
-                <div class="mig177">Si cometiste un error, solicita al
-                    docente que borre tu entrada anterior.</div>
+            <section id="registered-section" class="card glass mig173">
+                <div class="mig174">✅</div>
+                <h2 class="mig175">¡Registro en Curso!</h2>
+                <p id="registered-section-text" class="mig176">Ya has registrado tu ingreso en este dispositivo.</p>
+                <button type="button" id="btn-ver-modificar-datos" class="btn-primary" style="margin-top: 1rem; width: 100%;">
+                    ✏️ Ver, Verificar y Modificar Mis Datos
+                </button>
             </section>
 
             <section id="auto-registered-section" class="card glass mig178"
@@ -191,6 +216,10 @@
                 </button>
             </section>
         </main>
+
+        <footer class="app-footer">
+            <p>AulaInicial · Sistema Portátil · <span id="footer-version">...</span></p>
+        </footer>
     </div>
 
     <!-- Modal para ver grupos en vista alumno -->

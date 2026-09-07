@@ -60,6 +60,15 @@ async function waitForServer(tries = 40) {
         if (active.status === 200 && 'activeCourse' in active.json) ok('GET /api/active-course responde');
         else fail('GET /api/active-course malformado');
 
+        const pkg = require('../package.json');
+        const versionRes = await get('/api/version');
+        if (versionRes.status === 200 && versionRes.json && versionRes.json.version === pkg.version) ok(`GET /api/version responde ${pkg.version}`);
+        else fail('GET /api/version no respondió versión esperada: ' + JSON.stringify(versionRes.json));
+
+        const serverInfoRes = await get('/api/server-info');
+        if (serverInfoRes.status === 200 && serverInfoRes.json && serverInfoRes.json.version === pkg.version) ok(`GET /api/server-info incluye version ${pkg.version}`);
+        else fail('GET /api/server-info no incluye versión: ' + JSON.stringify(serverInfoRes.json));
+
         // CORS: un origen no permitido NO debe reflejarse como habilitado
         await new Promise((resolve) => {
             const req = http.request(BASE + '/api/active-course', { headers: { Origin: 'http://origen-malicioso.test' } }, res => {

@@ -220,6 +220,12 @@ select option {
     color: #f8fafc;
 }
 
+#search-section {
+    position: relative;
+    z-index: 50;
+    margin-bottom: 2rem;
+}
+
 .search-box {
     position: relative;
 }
@@ -233,16 +239,21 @@ select option {
     border: 1px solid var(--glass-border);
     border-radius: 0.75rem;
     margin-top: 0.5rem;
-    max-height: 200px;
+    max-height: 320px;
     overflow-y: auto;
-    z-index: 100;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    box-shadow: 0 18px 36px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .result-item {
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.1rem;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.result-item:last-child {
+    border-bottom: none;
 }
 
 .result-item:hover {
@@ -473,10 +484,12 @@ select option {
   
   .results-list {
     background: #ffffff;
+    box-shadow: 0 18px 36px -4px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.08);
   }
   
   .result-item {
     color: #0f172a;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   }
   
   .result-item:hover {
@@ -574,7 +587,7 @@ select option {
 /* Status list styles */
 .status-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 1rem;
     margin-top: 1rem;
 }
@@ -1096,7 +1109,7 @@ select option {
 .mig191 { margin-bottom: 1rem; color: #38bdf8; }
 .mig192 { margin-top: 1.2rem; width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700; }
 .mig193 { margin-top: 1.5rem; font-size: 0.85rem; opacity: 0.6; }
-.mig194 { text-align: center; margin-top: 1rem; }
+.mig194 { text-align: center; margin-top: 2.5rem; position: relative; z-index: 1; }
 .mig195 { width: auto; padding: 0.8rem 2rem; background: linear-gradient(135deg, #10b981, #059669); font-size: 1rem; }
 .mig196 { max-width: 800px; text-align: left; }
 .mig197 { justify-content: center; margin-bottom: 1.5rem; }
@@ -1125,3 +1138,314 @@ select option {
     border-radius: 6px; padding: 0.35rem 0.5rem;
 }
 .tardanza-guardado { margin-left: 0.6rem; color: #4ade80; font-size: 0.9rem; }
+
+/* --- Badges de versión y Pie de página --- */
+.version-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 9999px;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    vertical-align: middle;
+}
+
+.app-footer {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    font-size: 0.82rem;
+    opacity: 0.65;
+}
+
+/* --- Barra de herramientas de nómina de alumnos --- */
+.alumnos-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 280px;
+    min-width: 220px;
+}
+
+.toolbar-search-wrap .search-icon {
+    position: absolute;
+    left: 0.85rem;
+    font-size: 0.95rem;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.toolbar-search-wrap input {
+    width: 100%;
+    padding: 0.55rem 2.2rem 0.55rem 2.4rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.toolbar-search-wrap input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.toolbar-search-wrap .btn-clear-search {
+    position: absolute;
+    right: 0.6rem;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.2rem;
+}
+
+.toolbar-search-wrap .btn-clear-search:hover {
+    color: #f8fafc;
+}
+
+.toolbar-filters-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-filters-wrap select {
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.view-mode-toggle {
+    display: inline-flex;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.view-toggle-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-toggle-btn.active {
+    background: #38bdf8;
+    color: #0f172a;
+}
+
+.toolbar-counter {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* --- Tabla Administrativa Glassmorphism --- */
+.alumnos-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+}
+
+.admin-table-glass {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+}
+
+.admin-table-glass th {
+    background: rgba(15, 23, 42, 0.75);
+    padding: 0.85rem 1rem;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-table-glass td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    vertical-align: middle;
+}
+
+.admin-table-glass tbody tr {
+    transition: background 0.15s ease;
+}
+
+.admin-table-glass tbody tr:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-table-glass tbody tr.row-borrado {
+    opacity: 0.5;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.table-student-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #f8fafc;
+    word-break: break-word;
+}
+
+.table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.table-btn-action {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.35rem 0.55rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.table-btn-action:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.06);
+}
+
+@media (max-width: 640px) {
+    .alumnos-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .toolbar-filters-wrap {
+        justify-content: space-between;
+    }
+}
+
+/* --- Banner de Asistencia y Badges de Verificación del Alumno (v4.3.0) --- */
+.asistencia-banner {
+    padding: 0.9rem 1.1rem;
+    border-radius: 0.85rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.asistencia-banner-success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+}
+
+.asistencia-banner-pending {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+}
+
+.asistencia-banner-info {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #c7d2fe;
+}
+
+.field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.field-header label {
+    margin-bottom: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.field-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+}
+
+.badge-incorporado {
+    background: rgba(16, 185, 129, 0.18);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
+.badge-nuevo-dato {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fbbf24;
+    animation: pulseBadge 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseBadge {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 6px 2px rgba(245, 158, 11, 0.25);
+    }
+}
+
+.input-highlight-nuevo {
+    border-color: rgba(245, 158, 11, 0.6) !important;
+    background: rgba(245, 158, 11, 0.04) !important;
+}
+
+.input-highlight-guardado {
+    border-color: rgba(16, 185, 129, 0.4) !important;
+}
+

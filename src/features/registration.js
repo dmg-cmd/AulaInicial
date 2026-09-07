@@ -34,6 +34,114 @@ function dentroDeHoraLimite(horaStr) {
 
 function registerRegistrationRoutes(app) {
 
+    // Endpoint seguro para que el alumno consulte y verifique sus datos actuales antes de enviar el formulario
+    app.post('/api/alumno/mi-ficha', (req, res) => {
+        const { curso: clientCurso, alumnoId, nombreCompleto, token } = req.body;
+        const curso = clientCurso || getActiveCourse();
+        if (!curso) return res.status(400).json({ error: 'No hay un curso activo.' });
+
+        const filePath = getOrInitWorkingWorkbook(curso);
+        if (!filePath || !fs.existsSync(filePath)) {
+            return res.status(404).json({ error: 'El archivo del curso no existe.' });
+        }
+
+        withCourseLock(filePath, () => {
+            try {
+                const workbook = xlsx.readFile(filePath);
+                const sheetName = workbook.SheetNames[0];
+                const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+                let targetIndex = -1;
+                let alumno = null;
+
+                // 1. Intentar por token verificado si vino
+                if (token) {
+                    const verified = verifyStudentToken(token);
+                    if (verified) {
+                        const resTok = obtenerFilaPorToken(data, verified);
+                        if (resTok.row) {
+                            targetIndex = resTok.index;
+                            alumno = resTok.row;
+                        }
+                    }
+                }
+
+                // 2. Intentar por alumnoId
+                if (!alumno && Number.isInteger(alumnoId) && alumnoId >= 0 && data[alumnoId] !== undefined) {
+                    targetIndex = alumnoId;
+                    alumno = data[alumnoId];
+                }
+
+                // 3. Intentar por nombreCompleto
+                if (!alumno && nombreCompleto) {
+                    const buscado = nombreCompleto.trim().toLowerCase();
+                    const idx = data.findIndex(r => obtenerNombreAlumno(r).trim().toLowerCase() === buscado);
+                    if (idx !== -1) {
+                        targetIndex = idx;
+                        alumno = data[idx];
+                    }
+                }
+
+                if (!alumno || targetIndex < 0) {
+                    return res.status(404).json({ error: 'Alumno no encontrado en el curso activo.' });
+                }
+
+                const nombreAlumno = obtenerNombreAlumno(alumno);
+                const dniAlumno = alumno['DNI'] || '';
+
+                // Verificar si ya dio el presente hoy en la hoja de la fecha
+                const hoy = new Date();
+                const dateSheetName = `${hoy.getDate().toString().padStart(2, '0')}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}-${hoy.getFullYear()}`;
+                let dateData = [];
+                if (workbook.SheetNames.includes(dateSheetName)) {
+                    dateData = xlsx.utils.sheet_to_json(workbook.Sheets[dateSheetName]);
+                }
+                const idxInDate = dateData.findIndex(r => (r['Alumno'] || r['Nombre'] || '').toString().trim().toLowerCase() === nombreAlumno.toLowerCase());
+
+                const asistenciaHoy = {
+                    registrada: idxInDate >= 0,
+                    estado: idxInDate >= 0 ? (dateData[idxInDate]['Asistencia'] || dateData[idxInDate]['Estado'] || 'PRESENTES').toString().trim() : '',
+                    hora: idxInDate >= 0 ? (dateData[idxInDate]['Hora Registro'] || dateData[idxInDate]['Hora'] || '').toString().trim() : ''
+                };
+
+                const datos = {
+                    email: alumno['Email Privado'] || '',
+                    dni: dniAlumno,
+                    titulo: alumno['Título'] || alumno['Titulo'] || '',
+                    tecnologia: alumno['Tecnología'] || alumno['Tecnologia'] || '',
+                    grupo: alumno['Grupo'] || '',
+                    telefono: alumno['Teléfono'] || alumno['Telefono'] || '',
+                    fecha: alumno['Fecha Registro'] || ''
+                };
+
+                const customValues = {};
+                (state.formConfig.customFields || []).forEach(field => {
+                    const keyName = field.label || field.name;
+                    customValues[field.id] = alumno[keyName] !== undefined ? String(alumno[keyName]) : '';
+                });
+
+                const fotoUrl = findFotoForStudent(nombreAlumno, dniAlumno);
+
+                res.json({
+                    success: true,
+                    alumno: {
+                        id: targetIndex,
+                        nombreCompleto: nombreAlumno,
+                        datos,
+                        customValues,
+                        fotoUrl,
+                        asistenciaHoy
+                    }
+                });
+            } catch (err) {
+                console.error('Error al obtener ficha de alumno:', err);
+                res.status(500).json({ error: 'Error interno al consultar la ficha del alumno.' });
+            }
+        }).catch(() => {
+            if (!res.headersSent) res.status(500).json({ error: 'Error al consultar la ficha del alumno.' });
+        });
+    });
+
     app.post('/api/registro', (req, res) => {
         const { alumnoId, email, titulo, telefono, dni, curso: clientCurso, demo, customValues } = req.body;
         const curso = clientCurso || getActiveCourse();
@@ -78,25 +186,22 @@ function registerRegistrationRoutes(app) {
                 const data = xlsx.utils.sheet_to_json(sheet);
 
                 if (data[alumnoId] === undefined || typeof data[alumnoId] !== 'object') {
-                    // alumnoId suele ser índice 0-based del array; el frontend cuenta desde 1 (fila A7=índice6) -> ajuste
                     return res.status(400).json({ error: 'Alumno no encontrado en el índice del curso.' });
                 }
                 const alumno = data[alumnoId];
 
-                if (registeredIPs.has(clientIP) && isFullyRegistered(alumno)) {
-                    return res.status(403).json({ error: 'Este dispositivo ya ha realizado un registro en esta sesión.' });
-                }
+                // Actualizar campos estándar activos
+                if (state.formConfig.standardFields.email?.enabled !== false) alumno['Email Privado'] = (email || '').trim();
+                if (state.formConfig.standardFields.titulo?.enabled !== false) alumno['Título'] = (titulo || '').trim();
+                if (state.formConfig.standardFields.tecnologia?.enabled !== false) alumno['Tecnología'] = (req.body.tecnologia || 'NO ESPECIFICADO').trim();
+                if (state.formConfig.standardFields.telefono?.enabled !== false) alumno['Teléfono'] = (telefono || '').trim();
+                if (state.formConfig.standardFields.dni?.enabled !== false) alumno['DNI'] = (dni || '').trim();
+                if (state.formConfig.standardFields.grupo?.enabled !== false) alumno['Grupo'] = (req.body.grupo || '').trim().toUpperCase();
+                alumno['Fecha Registro'] = alumno['Fecha Registro'] || new Date().toLocaleString('es-AR');
 
-                if (state.formConfig.standardFields.email?.enabled !== false) alumno['Email Privado'] = email || '';
-                if (state.formConfig.standardFields.titulo?.enabled !== false) alumno['Título'] = titulo || '';
-                if (state.formConfig.standardFields.tecnologia?.enabled !== false) alumno['Tecnología'] = req.body.tecnologia || 'NO ESPECIFICADO';
-                if (state.formConfig.standardFields.telefono?.enabled !== false) alumno['Teléfono'] = telefono || '';
-                if (state.formConfig.standardFields.dni?.enabled !== false) alumno['DNI'] = dni || '';
-                if (state.formConfig.standardFields.grupo?.enabled !== false) alumno['Grupo'] = req.body.grupo || '';
-                alumno['Fecha Registro'] = new Date().toLocaleString('es-AR');
-
+                // Actualizar campos personalizados de clase
                 if (customValues && typeof customValues === 'object') {
-                    state.formConfig.customFields.forEach(field => {
+                    (state.formConfig.customFields || []).forEach(field => {
                         if (field.enabled !== false && customValues[field.id] !== undefined) {
                             const keyName = field.label || field.name;
                             alumno[keyName] = customValues[field.id];
@@ -106,8 +211,8 @@ function registerRegistrationRoutes(app) {
 
                 const alumnoName = obtenerNombreAlumno(alumno);
                 if (req.body.fotoData) saveStudentFoto(alumnoName, dni || alumno['DNI'], req.body.fotoData);
-                console.log(`✅ Registro actualizado: ${alumnoName} en [${safeCurso}]`);
 
+                // --- REGLA ESTRICTA DE ASISTENCIA: BLOQUEO DE DOBLE PRESENTE DIARIO ---
                 const hoy = new Date();
                 const dateSheetName = `${hoy.getDate().toString().padStart(2, '0')}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}-${hoy.getFullYear()}`;
                 const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -117,18 +222,47 @@ function registerRegistrationRoutes(app) {
                     dateData = xlsx.utils.sheet_to_json(workbook.Sheets[dateSheetName]);
                 }
                 const idxInDate = dateData.findIndex(r => (r['Alumno'] || r['Nombre'] || '').toString().trim().toLowerCase() === alumnoName.toLowerCase());
-                const filaFechaObj = {
-                    'DNI': dni || alumno['DNI'] || 'SIN DNI',
-                    'Alumno': alumnoName,
-                    'Asistencia': 'PRESENTES',
-                    'Grupo': (alumno['Grupo'] || req.body.grupo || 'SIN GRUPO').toString().toUpperCase().trim(),
-                    'Hora Registro': horaActual
-                };
-                if (idxInDate >= 0) dateData[idxInDate] = filaFechaObj;
-                else dateData.push(filaFechaObj);
-                const dateSheet = xlsx.utils.json_to_sheet(dateData);
-                if (workbook.SheetNames.includes(dateSheetName)) workbook.Sheets[dateSheetName] = dateSheet;
-                else xlsx.utils.book_append_sheet(workbook, dateSheet, dateSheetName);
+
+                const yaTeniaPresente = idxInDate >= 0;
+                let estadoAsistencia = 'PRESENTES';
+                let horaRegistroAsistencia = horaActual;
+
+                if (yaTeniaPresente) {
+                    // YA DIO EL PRESENTE HOY: BLOQUEAR SEGUNDO PRESENTE
+                    // Se preserva intacto el estado original y la hora en que dio el presente por primera vez
+                    estadoAsistencia = (dateData[idxInDate]['Asistencia'] || dateData[idxInDate]['Estado'] || 'PRESENTES').toString().trim();
+                    horaRegistroAsistencia = (dateData[idxInDate]['Hora Registro'] || dateData[idxInDate]['Hora'] || horaActual).toString().trim();
+
+                    // Actualizar DNI o Grupo en la hoja del día por coherencia
+                    dateData[idxInDate]['DNI'] = (dni || alumno['DNI'] || dateData[idxInDate]['DNI'] || 'SIN DNI').trim();
+                    if (req.body.grupo || alumno['Grupo']) {
+                        dateData[idxInDate]['Grupo'] = (req.body.grupo || alumno['Grupo']).toString().toUpperCase().trim();
+                    }
+                    const dateSheet = xlsx.utils.json_to_sheet(dateData);
+                    workbook.Sheets[dateSheetName] = dateSheet;
+                    console.log(`ℹ️ [Doble Presente Bloqueado] ${alumnoName} actualizó datos. Asistencia preservada: ${estadoAsistencia} a las ${horaRegistroAsistencia}`);
+                } else {
+                    // PRIMER PRESENTE DE HOY: Se asienta la asistencia por primera vez
+                    const cfgTardanza = leerCfgTardanza(workbook);
+                    const horaTomaLista = leerHoraTomaLista(workbook, dateSheetName);
+                    const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
+                    const tardeAuto = evaluarTarde(cfgTardanza, ahoraMin, horaAminutos(horaTomaLista));
+                    estadoAsistencia = tardeAuto ? 'PRESENTE TARDÍO' : 'PRESENTES';
+                    horaRegistroAsistencia = horaActual;
+
+                    const filaFechaObj = {
+                        'DNI': (dni || alumno['DNI'] || 'SIN DNI').trim(),
+                        'Alumno': alumnoName,
+                        'Asistencia': estadoAsistencia,
+                        'Grupo': (alumno['Grupo'] || req.body.grupo || 'SIN GRUPO').toString().toUpperCase().trim(),
+                        'Hora Registro': horaActual
+                    };
+                    dateData.push(filaFechaObj);
+                    const dateSheet = xlsx.utils.json_to_sheet(dateData);
+                    if (workbook.SheetNames.includes(dateSheetName)) workbook.Sheets[dateSheetName] = dateSheet;
+                    else xlsx.utils.book_append_sheet(workbook, dateSheet, dateSheetName);
+                    console.log(`✅ [Primer Presente del Día] ${alumnoName} (${estadoAsistencia} a las ${horaActual}) en [${safeCurso}]`);
+                }
 
                 consolidarPresentismo(workbook, data);
                 workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(data);
@@ -139,7 +273,16 @@ function registerRegistrationRoutes(app) {
                 registeredIPs.add(clientIP);
                 const token = generateStudentToken(alumnoName, alumnoId);
                 const fotoUrl = findFotoForStudent(alumnoName, dni || alumno['DNI']);
-                res.json({ success: true, token, fotoUrl });
+
+                res.json({
+                    success: true,
+                    token,
+                    fotoUrl,
+                    yaTeniaPresente,
+                    estadoAsistencia,
+                    horaRegistro: horaRegistroAsistencia,
+                    nombreAlumno: alumnoName
+                });
             } catch (error) {
                 console.error('Error al guardar en Excel:', error);
                 res.status(500).json({ error: 'Error interno al guardar los datos en el Excel.' });

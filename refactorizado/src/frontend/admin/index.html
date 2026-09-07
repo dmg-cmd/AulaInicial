@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Docente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Pantalla de Login (protegida) -->
+    <div id="login-screen">
+        <div class="card glass">
+            <h1>🔒 Panel del Docente</h1>
+            <p>Ingresa la contraseña para acceder a la administración.</p>
+            <form id="login-form">
+                <label for="login-pass">Contraseña:</label>
+                <div class="pass-input-wrapper">
+                    <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" id="btn-toggle-pass" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <button type="submit" class="btn-primary">
+                    🔑 Ingresar
+                </button>
+                <p id="login-default-hint"></p>
+                <p id="login-error" class="error"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla de Cambio de Contraseña -->
+    <div id="change-pass-screen">
+        <div class="card glass">
+            <h1>🔐 Cambiar Contraseña</h1>
+            <p id="change-pass-title">Ingresá la contraseña actual y definí una nueva.</p>
+            <form id="change-pass-form">
+                <label for="change-pass-current">Contraseña actual:</label>
+                <div class="pass-input-wrapper">
+                    <input type="password" id="change-pass-current" placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" class="btn-toggle-pass" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <label for="change-pass-new">Nueva contraseña:</label>
+                <div class="pass-input-wrapper">
+                    <input type="password" id="change-pass-new" placeholder="••••••••" autocomplete="new-password">
+                    <button type="button" class="btn-toggle-pass" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <label for="change-pass-confirm">Repetir nueva contraseña:</label>
+                <div class="pass-input-wrapper">
+                    <input type="password" id="change-pass-confirm" placeholder="••••••••" autocomplete="new-password">
+                    <button type="button" class="btn-toggle-pass" title="Mostrar / ocultar contraseña">👁️</button>
+                </div>
+                <button type="submit" class="btn-primary">
+                    💾 Cambiar Contraseña
+                </button>
+                <p id="change-pass-error" class="error"></p>
+                <p id="change-pass-success" class="success"></p>
+            </form>
+            <button id="btn-cancel-change-pass" class="btn-secondary">
+                ✖ Cancelar
+            </button>
+        </div>
+    </div>
+
+    <!-- App principal del panel admin -->
+    <div id="admin-app">
+        <div class="container">
+            <header>
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1>Panel del Docente</h1>
+                        <p>Gestiona el curso, toma asistencia y visualiza datos en tiempo real</p>
+                    </div>
+
+                    <!-- Selector de Curso Principal -->
+                    <div class="card glass">
+                        <label for="curso-select">📘 Curso Activo:</label>
+                        <select id="curso-select">
+                            <option value="">Cargando cursos...</option>
+                        </select>
+                        <p id="active-status"></p>
+                    </div>
+
+                    <button id="btn-change-pass-header" class="btn-primary">
+                        🔑 Cambiar Contraseña
+                    </button>
+                </div>
+
+                <!-- Navegación por Pestañas -->
+                <div class="nav-tabs-container">
+                    <div class="nav-tabs">
+                        <button class="tab-button active" data-tab="tab-alumnos">🎓 Manejo de Alumnos</button>
+                        <button class="tab-button" data-tab="tab-formulario">⚙️ Formularios</button>
+                        <button class="tab-button" data-tab="tab-asistencia">📲 Lista y QR</button>
+                        <button class="tab-button" data-tab="tab-asist-historica">📜 AsistHistórica</button>
+                        <button class="tab-button" data-tab="tab-estadisticas">📊 Estadísticas</button>
+                        <button class="tab-button" data-tab="tab-grupos">👥 Grupos</button>
+                        <button class="tab-button" data-tab="tab-exportar">📥 Exportar</button>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <!-- 1. MÓDULO: MANEJO DE ALUMNOS -->
+                <div id="tab-alumnos" class="tab-content active">
+                    <section class="card glass">
+                        <div class="section-header">
+                            <div>
+                                <h2>🎓 Nómina General de Alumnos</h2>
+                                <p>Consulta la lista del curso, agrega nuevos alumnos o edita/elimina registros existentes.</p>
+                            </div>
+                            <div class="section-actions">
+                                <button id="btn-toggle-add-alumno" class="btn-secondary">➕ Abrir Formulario</button>
+                                <button id="btn-toggle-borrados" class="btn-secondary">🚫 Mostrar borrados</button>
+                            </div>
+                        </div>
+
+                        <!-- Formulario Desplegable para Alta de Alumno -->
+                        <div id="form-add-alumno-container">
+                            <h3>➕ Agregar Nuevo Alumno Manualmente</h3>
+                            <div class="form-grid">
+                                <div>
+                                    <label>Nombre:</label>
+                                    <input type="text" id="add-alumno-nombre" placeholder="ej. Juan Carlos">
+                                </div>
+                                <div>
+                                    <label>Apellido:</label>
+                                    <input type="text" id="add-alumno-apellido" placeholder="ej. Pérez">
+                                </div>
+                                <div>
+                                    <label>DNI / ID:</label>
+                                    <input type="text" id="add-alumno-dni" placeholder="ej. 35123456">
+                                </div>
+                                <div>
+                                    <label>Grupo:</label>
+                                    <input type="text" id="add-alumno-grupo" placeholder="ej. GRUPO A">
+                                </div>
+                                <div>
+                                    <label>Título / Profesión:</label>
+                                    <select id="add-alumno-titulo">
+                                        <option value="LICENCIADO">LICENCIADO</option>
+                                        <option value="ABOGADO">ABOGADO</option>
+                                        <option value="ARQUITECTO">ARQUITECTO</option>
+                                        <option value="COMUNICADOR">COMUNICADOR</option>
+                                        <option value="CONTADOR">CONTADOR</option>
+                                        <option value="DOCENTE">DOCENTE</option>
+                                        <option value="ENFERMERO">ENFERMERO</option>
+                                        <option value="IMAGENOLOGO">IMAGENOLOGO</option>
+                                        <option value="INGENIERO">INGENIERO</option>
+                                        <option value="MEDICO">MEDICO</option>
+                                        <option value="NUTRICIONISTA">NUTRICIONISTA</option>
+                                        <option value="POLITOLOGO">POLITOLOGO</option>
+                                        <option value="PSICOLOGO">PSICOLOGO</option>
+                                        <option value="RADIOLOGO">RADIOLOGO</option>
+                                        <option value="SISTEMAS">SISTEMAS / INFORMATICO</option>
+                                        <option value="VETERINARIO">VETERINARIO</option>
+                                        <option value="OTRO">OTRO</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Nivel Tecnológico:</label>
+                                    <select id="add-alumno-tecnologia">
+                                        <option value="MODERADO">MODERADO</option>
+                                        <option value="AVANZADO">AVANZADO</option>
+                                        <option value="TEMEROSO">TEMEROSO</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="add-alumno-marcar-presente">
+                                    ✅ Marcar PRESENTE inmediatamente para el día de hoy
+                                </label>
+                                <button id="btn-guardar-nuevo-alumno" class="btn-primary">💾 Guardar Alumno en Excel</button>
+                            </div>
+                        </div>
+
+                        <!-- Lista de Tarjetas de Alumnos -->
+                        <div id="alumnos-status-list" class="status-grid">
+                            <p>Selecciona un curso para ver los alumnos...</p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 2. MÓDULO: CONFIGURACIÓN DEL FORMULARIO Y VISTA ALUMNO -->
+                <div id="tab-formulario" class="tab-content">
+                    <section class="card glass">
+                        <div class="section-header">
+                            <div>
+                                <h2>⚙️ Configuración del Formulario para Alumnos</h2>
+                                <p>Elige los datos que se le solicitarán al estudiante cuando escanee el código QR.</p>
+                            </div>
+                            <div class="section-actions">
+                                <button id="btn-uncheck-all" class="btn-secondary" title="Desmarca todas las casillas activas">🧹 Desmarcar Todas</button>
+                                <button id="btn-student-view" class="btn-secondary">👤 Probar Vista Alumno</button>
+                            </div>
+                        </div>
+
+                        <h3>📋 Campos Estándar del Sistema</h3>
+                        <div id="standard-fields-container"></div>
+
+                        <h3>➕ Campos Personalizados</h3>
+                        <div id="custom-fields-container"></div>
+
+                        <div class="section-actions">
+                            <h4>Crear Nuevo Campo Personalizado</h4>
+                            <div class="form-grid">
+                                <div>
+                                    <label>Nombre / Etiqueta del Campo:</label>
+                                    <input type="text" id="new-field-label" placeholder="Ej. Legajo, Tarea del día, Comentario...">
+                                </div>
+                                <div>
+                                    <label>Tipo de Entrada:</label>
+                                    <select id="new-field-type">
+                                        <option value="text">Texto Plano</option>
+                                        <option value="number">Número</option>
+                                        <option value="select">Desplegable</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Categoría del Dato:</label>
+                                    <select id="new-field-category">
+                                        <option value="clase">📚 Dato de Clase</option>
+                                        <option value="personal">👤 Dato Personal</option>
+                                    </select>
+                                </div>
+                                <div id="new-field-options-group">
+                                    <label>Opciones (separadas por coma):</label>
+                                    <input type="text" id="new-field-options" placeholder="Opción 1, Opción 2, Opción 3">
+                                </div>
+                                <div class="checkbox-label">
+                                    <input type="checkbox" id="new-field-required">
+                                    <label for="new-field-required">¿Obligatorio?</label>
+                                </div>
+                            </div>
+                            <button id="btn-add-custom-field" class="btn-primary">➕ Agregar Campo</button>
+                        </div>
+
+                        <!-- Asistencia tardía -->
+                        <div class="config-section">
+                            <h4>⏰ Asistencia Tardía (Llegada después de tomar lista)</h4>
+                            <p>Si un alumno escanea el QR después de que tomes lista, puede marcarse como <b>PRESENTE TARDÍO</b>.</p>
+                            <div class="form-grid">
+                                <div class="checkbox-label">
+                                    <input type="checkbox" id="asistencia-permitir-tardio">
+                                    Permitir el presente tardío del alumno
+                                </div>
+                                <div>
+                                    <label for="asistencia-hora-limite">Hora límite (HH:MM, vacío = todo el día):</label>
+                                    <input type="time" id="asistencia-hora-limite">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-actions">
+                            <button id="btn-save-config" class="btn-primary">💾 Guardar Configuración</button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 3. MÓDULO: PASE DE LISTA Y CÓDIGO QR -->
+                <div id="tab-asistencia" class="tab-content">
+                    <section class="card glass tardanza-panel">
+                        <div class="tardanza-reloj-bar">
+                            <div id="reloj-tardanza" class="reloj-tardanza">🕒 --:--:--</div>
+                            <button id="btn-tomar-lista" class="btn-secondary" type="button">📋 Tomar lista</button>
+                            <span id="toma-lista-estado" class="toma-lista-estado"></span>
+                        </div>
+                        <div class="tardanza-config">
+                            <h3>⏰ Tardanza automática</h3>
+                            <div class="tardanza-modos">
+                                <label><input type="radio" name="tardanza-modo" value="manual" checked> Manual (sin auto)</label>
+                                <label><input type="radio" name="tardanza-modo" value="horario"> Horario fijo de clase</label>
+                                <label><input type="radio" name="tardanza-modo" value="desplist"> Minutos tras tomar lista</label>
+                            </div>
+                            <div id="tardanza-horario" class="tardanza-sub" hidden>
+                                <label>Hora de inicio: <input type="time" id="tardanza-hora-inicio"></label>
+                                <label>Margen de gracia (min): <input type="number" id="tardanza-margen" min="0" value="0"></label>
+                            </div>
+                            <div id="tardanza-desplist" class="tardanza-sub" hidden>
+                                <label>Minutos tras tomar lista: <input type="number" id="tardanza-min-despues" min="1" value="30"></label>
+                            </div>
+                            <button id="btn-guardar-tardanza" class="btn-primary" type="button">💾 Guardar configuración</button>
+                            <span id="tardanza-guardado" class="tardanza-guardado"></span>
+                        </div>
+                    </section>
+                    <section class="card glass">
+                        <div class="section-header">
+                            <div>
+                                <h2>📲 Pase de Lista y Escaneo QR</h2>
+                                <p>Proyecta el código QR para que los alumnos escaneen desde sus celulares.</p>
+                            </div>
+                            <div class="section-actions">
+                                <div>
+                                    <label for="asistencia-fecha-input">Fecha del Día:</label>
+                                    <input type="date" id="asistencia-fecha-input">
+                                </div>
+                                <div>
+                                    <button id="btn-marcar-todos-presentes" class="btn-secondary">✅ Marcar Todos Presentes</button>
+                                    <button id="btn-guardar-asistencia-fecha" class="btn-primary">💾 Guardar Asistencia</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Código QR Proyectado -->
+                        <div id="qr-container" class="qr-box glass" title="Haz clic para agrandar el QR">
+                            <img id="qr-image" src="" alt="QR Access">
+                            <span>🔍 Agrandar QR</span>
+                        </div>
+                    </section>
+
+                    <!-- Lista en vivo del presente de HOY -->
+                    <div class="section-header">
+                        <h3>📋 Presentes en Vivo (Hoy)</h3>
+                    </div>
+                    <div id="alumnos-status-list-asistencia" class="status-grid status-grid-compact"></div>
+                </div>
+
+                <!-- 3b. MÓDULO: HISTORIAL DE ASISTENCIA -->
+                <div id="tab-asist-historica" class="tab-content">
+                    <section class="card glass">
+                        <div class="section-header">
+                            <div>
+                                <h2>📜 Historial de Asistencia</h2>
+                                <p>Consulta la asistencia registrada por fecha.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div>
+                                <label>📅 Consultar Asistencia Histórica:</label>
+                                <select id="consultar-asistencia-select">
+                                    <option value="">-- Seleccionar fecha previa --</option>
+                                </select>
+                            </div>
+                            <div class="flex-end">
+                                <button id="btn-consultar-asistencia" class="btn-secondary">🔍 Ver</button>
+                            </div>
+                        </div>
+                        <div id="resumen-asistencia-badge"></div>
+
+                        <div class="form-grid" style="margin-top:1.2rem;">
+                            <div>
+                                <label>🗑️ Eliminar día de asistencia:</label>
+                                <select id="borrar-fecha-select">
+                                    <option value="">Selecciona una fecha guardada</option>
+                                </select>
+                            </div>
+                            <div class="flex-end">
+                                <button id="btn-borrar-dia-asistencia" class="btn-secondary">🗑️ Borrar Día</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:0.8rem;">
+                            <button id="btn-sync-ausentes" class="btn-secondary">🔄 Sincronizar Ausentes Faltantes</button>
+                        </div>
+
+                        <div id="tabla-asistencia-historica-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Alumno</th>
+                                        <th>DNI</th>
+                                        <th>Grupo</th>
+                                        <th>Estado</th>
+                                        <th>Hora Registro</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-asistencia-historica-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 4. MÓDULO: ESTADÍSTICAS -->
+                <div id="tab-estadisticas" class="tab-content">
+                    <div class="sub-tabs">
+                        <button id="btn-estad-datos" class="tab-button estad-subtab">📊 Datos del Formulario</button>
+                        <button id="btn-estad-presentismo" class="tab-button estad-subtab active">📋 Presentismo / Ausencias</button>
+                    </div>
+
+                    <section class="card glass" id="estad-datos-panel">
+                        <div class="section-header">
+                            <div>
+                                <h2>📊 Estadísticas y Muestra de Datos</h2>
+                                <p>Filtra por fecha, variable a analizar y grupo objetivo.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div>
+                                <label>📅 Pestaña / Fecha:</label>
+                                <select id="stats-date-select">
+                                    <option value="TODOS">🌐 Acumulado General</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>📌 Campo a Analizar:</label>
+                                <select id="stats-field-select">
+                                    <option value="titulo">Título Profesional</option>
+                                    <option value="tecnologia">Relación con la Tecnología</option>
+                                    <option value="grupo">Grupo de Trabajo</option>
+                                    <option value="asistencia">Asistencia</option>
+                                    <option value="dni">DNI / ID</option>
+                                    <option value="email">Email Privado</option>
+                                    <option value="telefono">Teléfono</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>👥 Grupo Objetivo:</label>
+                                <select id="stats-group-select">
+                                    <option value="TODOS">🌐 Todos los Grupos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>🎨 Formato Visual:</label>
+                                <select id="stats-format-select">
+                                    <option value="bar">📊 Barras</option>
+                                    <option value="doughnut">🍩 Dona</option>
+                                    <option value="pie">🥧 Torta</option>
+                                    <option value="line">📈 Líneas</option>
+                                    <option value="polarArea">🕸️ Radar</option>
+                                    <option value="table">📋 Tabla</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h3 id="stats-dynamic-header">Distribución Estadística</h3>
+                        <div id="dynamicChartContainer" class="chart-container">
+                            <canvas id="dynamicChart"></canvas>
+                        </div>
+                        <div id="dynamicTableContainer">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Categoría / Valor</th>
+                                        <th>Cantidad</th>
+                                        <th>Porcentaje (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="card glass" id="estad-presentismo-panel">
+                        <h3>📋 Ausencias por Alumno y por Mes</h3>
+                        <p>Presentes, tardes y ausencias desglosados por mes.</p>
+
+                        <div class="form-grid">
+                            <div>
+                                <label>📅 Mes:</label>
+                                <select id="aus-mes-select">
+                                    <option value="">🌐 Todos los Meses</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>👥 Grupo Objetivo:</label>
+                                <select id="aus-grupo-select">
+                                    <option value="TODOS">🌐 Todos los Grupos</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h4>🗂️ Resumen por Alumno</h4>
+                        <table id="aus-tabla-alumno">
+                            <thead id="aus-tabla-alumno-head">
+                                <tr>
+                                    <th data-key="alumno">Alumno</th>
+                                    <th data-key="presentes">Presentes</th>
+                                    <th data-key="tardes">Tardes</th>
+                                    <th data-key="ausencias">Ausencias</th>
+                                    <th data-key="total">Total</th>
+                                    <th data-key="pctPresentismo">% Presentismo</th>
+                                    <th data-key="pctAusencia">% Ausencia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aus-tabla-alumno-body"></tbody>
+                            <tfoot id="aus-tabla-alumno-tfoot"></tfoot>
+                        </table>
+
+                        <h4>📆 Ausencias por Mes</h4>
+                        <table id="aus-matriz">
+                            <thead id="aus-matriz-head">
+                                <tr>
+                                    <th>Alumno</th>
+                                    <th>—</th>
+                                    <th>% Aus. Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aus-matriz-body"></tbody>
+                        </table>
+                    </section>
+                </div>
+
+                <!-- 5. MÓDULO: GRUPOS -->
+                <div id="tab-grupos" class="tab-content">
+                    <section class="card glass">
+                        <div class="section-header">
+                            <div>
+                                <h2>👥 Conformación de Grupos</h2>
+                                <p>Consulta los equipos creados y sus miembros.</p>
+                            </div>
+                        </div>
+                        <div id="grupos-cards-container"></div>
+                    </section>
+                </div>
+
+                <!-- 6. MÓDULO: EXPORTAR -->
+                <div id="tab-exportar" class="tab-content">
+                    <section class="card glass">
+                        <h2>📥 Exportación de Reportes</h2>
+                        <p>Descarga toda la información del curso en diferentes formatos.</p>
+                        <div class="section-actions">
+                            <button id="btn-export-excel" class="btn-primary">🟢 Exportar a Excel (.xlsx)</button>
+                            <button id="btn-export-word" class="btn-primary">🔵 Exportar a Word (.doc)</button>
+                            <button id="btn-export-txt" class="btn-secondary">📄 Exportar Texto (.txt)</button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal">&times;</span>
+            <img id="qr-image-large" src="" alt="QR Access Large">
+            <p>Escanea este código para ingresar</p>
+        </div>
+    </div>
+
+    <div id="student-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-student-modal">&times;</span>
+            <div id="student-details">
+                <div class="student-header">
+                    <div id="modal-student-photo-box">
+                        <img id="modal-student-photo-img" class="student-avatar-lg" src="">
+                        <div id="modal-student-photo-placeholder" class="student-avatar-lg">👤</div>
+                    </div>
+                    <div>
+                        <h2 id="modal-student-name">Detalles del Alumno</h2>
+                        <button id="btn-modal-delete-photo" class="btn-delete-foto">🗑️ Borrar Foto</button>
+                    </div>
+                </div>
+                <div class="status-grid">
+                    <p><strong>Email:</strong> <span id="det-email">-</span></p>
+                    <p><strong>DNI/ID:</strong> <span id="det-dni">-</span></p>
+                    <p><strong>Título:</strong> <span id="det-titulo">-</span></p>
+                    <p><strong>Tecnología:</strong> <span id="det-tecnologia">-</span></p>
+                    <p><strong>Grupo:</strong> <span id="det-grupo">-</span></p>
+                    <p><strong>Teléfono:</strong> <span id="det-tel">-</span></p>
+                    <p><strong>Fecha Registro:</strong> <span id="det-fecha">-</span></p>
+                </div>
+                <div style="margin-top:1rem;">
+                    <h4>📊 Presentismo</h4>
+                    <div id="det-presentismo" style="display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
+                </div>
+                <div class="modal-actions">
+                    <button id="btn-modal-editar-alumno" class="btn-primary">✏️ Editar</button>
+                    <button id="btn-modal-borrar-alumno" class="btn-secondary">🚫 Borrar</button>
+                    <button id="btn-modal-borrar-definitivo" class="btn-danger">❌ Borrado Definitivo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-student-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-edit-modal">&times;</span>
+            <h2>✏️ Modificar Alumno</h2>
+            <input type="hidden" id="edit-nombre-original">
+            <div class="form-grid">
+                <div><label>Nombre:</label><input type="text" id="edit-nombre"></div>
+                <div><label>Apellido:</label><input type="text" id="edit-apellido"></div>
+                <div><label>DNI / ID:</label><input type="text" id="edit-dni"></div>
+                <div><label>Grupo:</label><input type="text" id="edit-grupo"></div>
+                <div><label>Título:</label><input type="text" id="edit-titulo"></div>
+                <div><label>Email:</label><input type="text" id="edit-email"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-cancelar-edicion" class="btn-secondary">Cancelar</button>
+                <button id="btn-guardar-edicion-alumno" class="btn-primary">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="options-editor-modal" class="modal">
+        <div class="modal-content glass">
+            <span class="close-modal" id="close-options-modal">&times;</span>
+            <h2 id="options-modal-title">⚙️ Gestionar Opciones</h2>
+            <div class="form-actions">
+                <input type="text" id="options-new-item" placeholder="Nueva opción...">
+                <button id="btn-add-option-item" class="btn-primary">➕ Agregar</button>
+            </div>
+            <div id="options-items-list"></div>
+            <div class="modal-actions">
+                <button id="btn-guardar-opciones-modal" class="btn-primary">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" crossorigin src="/assets/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{
+  "standardFields": {
+    "email": {
+      "label": "Email Privado",
+      "required": true,
+      "category": "personal",
+      "options": [],
+      "enabled": false
+    },
+    "dni": {
+      "label": "DNI / ID",
+      "required": true,
+      "category": "personal",
+      "options": [],
+      "enabled": false
+    },
+    "titulo": {
+      "label": "Título Profesional / Especialidad",
+      "required": true,
+      "category": "personal",
+      "type": "select",
+      "options": [
+        "LICENCIADO",
+        "ABOGADO",
+        "ARQUITECTO",
+        "COMUNICADOR",
+        "CONTADOR",
+        "DOCENTE",
+        "ENFERMERO",
+        "IMAGENOLOGO",
+        "INGENIERO",
+        "MEDICO",
+        "NUTRICIONISTA",
+        "POLITOLOGO",
+        "PSICOLOGO",
+        "RADIOLOGO",
+        "SISTEMAS",
+        "VETERINARIO",
+        "OTRO"
+      ],
+      "enabled": false
+    },
+    "tecnologia": {
+      "label": "Relación con la Tecnología",
+      "required": true,
+      "category": "personal",
+      "type": "select",
+      "options": [
+        "AVANZADO",
+        "MODERADO",
+        "TEMEROSO"
+      ],
+      "enabled": false
+    },
+    "grupo": {
+      "label": "Grupo (Una sola palabra)",
+      "required": true,
+      "category": "personal",
+      "options": [],
+      "enabled": false
+    },
+    "telefono": {
+      "label": "Teléfono (Opcional)",
+      "required": false,
+      "category": "personal",
+      "options": [],
+      "enabled": false
+    },
+    "foto": {
+      "label": "Foto Real del Rostro (Identificación Visual)",
+      "required": false,
+      "category": "personal",
+      "options": [],
+      "enabled": false
+    }
+  },
+  "customFields": [
+    {
+      "id": "custom_1787195952641",
+      "label": "Cansulta de clase",
+      "name": "Cansulta de clase",
+      "type": "select",
+      "category": "clase",
+      "enabled": true,
+      "required": false,
+      "options": [
+        "uno",
+        "dos",
+        "tres"
+      ]
+    }
+  ],
+  "asistencia": {
+    "permitirPresenteTardio": true,
+    "horaLimite": "16:00"
+  },
+  "cursoPreferido": "TTE - PDS Inspt agosto 2025.xlsx"
+}

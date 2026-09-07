@@ -1,12 +1,12 @@
 {
   "name": "aulainicial",
-  "version": "4.1.1",
+  "version": "4.3.1",
   "main": "index.js",
   "scripts": {
     "lint": "node --check server.js && node --check index.js && node --check admin.js",
     "test": "node test/smoke.js",
-    "build:win": "pkg . --targets node22-win-x64 --output bin/AulaInicial.exe",
-    "build:linux": "pkg . --targets node22-linux-x64 --output bin/AulaInicial-linux",
+    "build:win": "node ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node22-win-x64 --output bin/AulaInicial.exe",
+    "build:linux": "node ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node22-linux-x64 --output bin/AulaInicial-linux",
     "build": "npm run build:win && npm run build:linux"
   },
   "bin": "server.js",

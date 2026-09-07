@@ -1033,6 +1033,23 @@ cursoSelect.addEventListener('change', async (e) => {
     }
 });
 
+async function loadAdminVersionBadge() {
+    try {
+        const res = await fetch('/api/version');
+        if (res.ok) {
+            const data = await res.json();
+            const vStr = data.version ? `v${data.version}` : '';
+            const loginBadge = document.getElementById('login-version-badge');
+            const adminBadge = document.getElementById('admin-version-badge');
+            if (loginBadge) loginBadge.textContent = vStr;
+            if (adminBadge) adminBadge.textContent = vStr;
+        }
+    } catch (err) {
+        // silencioso
+    }
+}
+loadAdminVersionBadge();
+
 async function loadServerInfo() {
     try {
         const res = await fetch('/api/server-info');
@@ -1040,6 +1057,13 @@ async function loadServerInfo() {
         if (info.qr) {
             qrImage.src = info.qr;
             qrImageLarge.src = info.qr;
+        }
+        if (info.version) {
+            const vStr = `v${info.version}`;
+            const loginBadge = document.getElementById('login-version-badge');
+            const adminBadge = document.getElementById('admin-version-badge');
+            if (loginBadge) loginBadge.textContent = vStr;
+            if (adminBadge) adminBadge.textContent = vStr;
         }
     } catch (err) {
         console.error('Error cargando info del servidor', err);
@@ -1450,18 +1474,311 @@ async function cargarAusencias() {
 
 
 let mostrarBorrados = false;
+let alumnosCache = [];
+let currentAlumnosViewMode = localStorage.getItem('aula_alumnos_view_mode') || 'cards';
+let alumnosToolbarInitialized = false;
+
+function setupAlumnosToolbar() {
+    if (alumnosToolbarInitialized) return;
+    alumnosToolbarInitialized = true;
+
+    const searchInput = document.getElementById('search-alumnos-input');
+    const btnClear = document.getElementById('btn-clear-search-alumnos');
+    const filterGrupo = document.getElementById('filter-alumnos-grupo');
+    const btnViewCards = document.getElementById('btn-view-cards');
+    const btnViewTable = document.getElementById('btn-view-table');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (btnClear) btnClear.style.display = searchInput.value ? 'block' : 'none';
+            renderAlumnosManagement();
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            if (searchInput) {
+                searchInput.value = '';
+                btnClear.style.display = 'none';
+                searchInput.focus();
+                renderAlumnosManagement();
+            }
+        });
+    }
+
+    if (filterGrupo) {
+        filterGrupo.addEventListener('change', () => {
+            renderAlumnosManagement();
+        });
+    }
+
+    function setViewMode(mode) {
+        currentAlumnosViewMode = mode;
+        localStorage.setItem('aula_alumnos_view_mode', mode);
+        if (btnViewCards) btnViewCards.classList.toggle('active', mode === 'cards');
+        if (btnViewTable) btnViewTable.classList.toggle('active', mode === 'table');
+        const gridEl = document.getElementById('alumnos-status-list');
+        const tableWrapper = document.getElementById('alumnos-table-wrapper');
+        if (gridEl) gridEl.style.display = (mode === 'cards') ? 'grid' : 'none';
+        if (tableWrapper) tableWrapper.style.display = (mode === 'table') ? 'block' : 'none';
+        renderAlumnosManagement();
+    }
+
+    if (btnViewCards) {
+        btnViewCards.addEventListener('click', () => setViewMode('cards'));
+    }
+    if (btnViewTable) {
+        btnViewTable.addEventListener('click', () => setViewMode('table'));
+    }
+
+    setViewMode(currentAlumnosViewMode);
+}
+
+function buildAlumnosTableRow(alumno) {
+    const tr = document.createElement('tr');
+    if (alumno.borrado) tr.className = 'row-borrado';
+
+    // 1. Foto / Avatar
+    const tdFoto = document.createElement('td');
+    tdFoto.style.textAlign = 'center';
+    let avatarEl;
+    if (alumno.fotoUrl) {
+        avatarEl = document.createElement('img');
+        avatarEl.src = alumno.fotoUrl;
+        avatarEl.className = 'student-avatar';
+        avatarEl.style.width = '38px';
+        avatarEl.style.height = '38px';
+        avatarEl.style.borderRadius = '50%';
+        avatarEl.style.objectFit = 'cover';
+        avatarEl.style.cursor = 'pointer';
+        avatarEl.alt = alumno.nombreCompleto;
+    } else {
+        avatarEl = document.createElement('div');
+        avatarEl.className = 'student-avatar';
+        avatarEl.style.width = '38px';
+        avatarEl.style.height = '38px';
+        avatarEl.style.borderRadius = '50%';
+        avatarEl.style.display = 'inline-flex';
+        avatarEl.style.alignItems = 'center';
+        avatarEl.style.justifyContent = 'center';
+        avatarEl.style.background = 'rgba(255, 255, 255, 0.1)';
+        avatarEl.style.cursor = 'pointer';
+        const parts = (alumno.nombreCompleto || '').split(' ').filter(Boolean);
+        const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0][0].toUpperCase() : '👤');
+        avatarEl.textContent = initials;
+    }
+    avatarEl.title = 'Ver foto y ficha';
+    avatarEl.addEventListener('click', () => showStudentDetails(alumno));
+    tdFoto.appendChild(avatarEl);
+    tr.appendChild(tdFoto);
+
+    // 2. Apellido y Nombre completo
+    const tdNombre = document.createElement('td');
+    const nameEl = document.createElement('span');
+    nameEl.className = 'table-student-name';
+    nameEl.textContent = alumno.nombreCompleto;
+    if (alumno.borrado) {
+        const bBadge = document.createElement('span');
+        bBadge.textContent = ' (🚫 Borrado)';
+        bBadge.style.cssText = 'color: #f87171; font-size: 0.8rem; font-weight: normal;';
+        nameEl.appendChild(bBadge);
+    }
+    tdNombre.appendChild(nameEl);
+    tr.appendChild(tdNombre);
+
+    // 3. DNI
+    const tdDni = document.createElement('td');
+    tdDni.textContent = (alumno.datos && alumno.datos.dni) ? alumno.datos.dni : '—';
+    tdDni.style.opacity = '0.85';
+    tr.appendChild(tdDni);
+
+    // 4. Grupo
+    const tdGrupo = document.createElement('td');
+    if (alumno.datos && alumno.datos.grupo) {
+        const grpBadge = document.createElement('span');
+        grpBadge.style.cssText = 'background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600; font-size: 0.8rem; border: 1px solid rgba(56, 189, 248, 0.3);';
+        grpBadge.textContent = alumno.datos.grupo;
+        tdGrupo.appendChild(grpBadge);
+    } else {
+        tdGrupo.textContent = '—';
+        tdGrupo.style.opacity = '0.5';
+    }
+    tr.appendChild(tdGrupo);
+
+    // 5. Especialidad / Título
+    const tdTitulo = document.createElement('td');
+    tdTitulo.textContent = (alumno.datos && alumno.datos.titulo) ? alumno.datos.titulo : '—';
+    tdTitulo.style.opacity = '0.85';
+    tr.appendChild(tdTitulo);
+
+    // 6. Asistencia de Hoy
+    const tdHoy = document.createElement('td');
+    tdHoy.style.textAlign = 'center';
+    if (alumno.presenteHoy) {
+        tdHoy.innerHTML = '<span class="stat-pill stat-pres" style="font-size:0.75rem;">✅ Presente</span>';
+    } else if (alumno.tardeHoy) {
+        tdHoy.innerHTML = '<span class="stat-pill stat-tar" style="font-size:0.75rem;">🟡 Tarde</span>';
+    } else {
+        tdHoy.innerHTML = '<span class="stat-pill" style="font-size:0.75rem; opacity:0.6;">⚪ Pendiente</span>';
+    }
+    tr.appendChild(tdHoy);
+
+    // 7. Asistencias acumuladas
+    const tdAsist = document.createElement('td');
+    tdAsist.style.textAlign = 'center';
+    const counts = document.createElement('div');
+    counts.style.cssText = 'display: inline-flex; gap: 0.35rem; align-items: center; justify-content: center; flex-wrap: wrap;';
+    const p1 = document.createElement('span');
+    p1.className = 'stat-pill' + (alumno.presentes > 0 ? ' stat-pres' : '');
+    p1.textContent = `✅ ${alumno.presentes || 0}`;
+    const p2 = document.createElement('span');
+    p2.className = 'stat-pill' + (alumno.tardes > 0 ? ' stat-tar' : '');
+    p2.textContent = `🟡 ${alumno.tardes || 0}`;
+    const p3 = document.createElement('span');
+    p3.className = 'stat-pill' + (alumno.ausentes > 0 ? ' stat-aus' : '');
+    p3.textContent = `❌ ${alumno.ausentes || 0}`;
+    counts.appendChild(p1);
+    counts.appendChild(p2);
+    counts.appendChild(p3);
+    if (alumno.totalClases > 0) {
+        const pct = alumno.porcentajePresentismo || 0;
+        const pPct = document.createElement('span');
+        pPct.className = 'stat-pill ' + (pct >= 70 ? 'stat-pres' : pct >= 50 ? 'stat-tar' : 'stat-aus');
+        pPct.textContent = `🎯 ${pct}%`;
+        counts.appendChild(pPct);
+    }
+    tdAsist.appendChild(counts);
+    tr.appendChild(tdAsist);
+
+    // 8. Acciones
+    const tdAcciones = document.createElement('td');
+    tdAcciones.className = 'table-actions';
+
+    if (alumno.borrado) {
+        const btnRest = document.createElement('button');
+        btnRest.type = 'button';
+        btnRest.className = 'table-btn-action';
+        btnRest.textContent = '♻️ Restaurar';
+        btnRest.title = 'Restaurar alumno';
+        btnRest.addEventListener('click', () => restaurarAlumno(alumno.nombreCompleto));
+        tdAcciones.appendChild(btnRest);
+    } else {
+        const btnFicha = document.createElement('button');
+        btnFicha.type = 'button';
+        btnFicha.className = 'table-btn-action';
+        btnFicha.textContent = '🔍';
+        btnFicha.title = 'Ver ficha completa';
+        btnFicha.addEventListener('click', () => showStudentDetails(alumno));
+        tdAcciones.appendChild(btnFicha);
+
+        const btnEd = document.createElement('button');
+        btnEd.type = 'button';
+        btnEd.className = 'table-btn-action';
+        btnEd.textContent = '✏️';
+        btnEd.title = 'Modificar datos del alumno';
+        btnEd.addEventListener('click', () => abrirModalEdicionAlumno(alumno));
+        tdAcciones.appendChild(btnEd);
+
+        if (alumno.fotoUrl) {
+            const btnFoto = document.createElement('button');
+            btnFoto.type = 'button';
+            btnFoto.className = 'table-btn-action';
+            btnFoto.textContent = '🗑️📷';
+            btnFoto.title = 'Eliminar foto actual';
+            btnFoto.addEventListener('click', async () => {
+                if (confirm(`¿Eliminar la foto de [${alumno.nombreCompleto}]?`)) {
+                    await fetch('/api/borrar-foto-alumno', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nombreCompleto: alumno.nombreCompleto, dni: alumno.datos?.dni || '' })
+                    });
+                    refreshAlumnosList();
+                }
+            });
+            tdAcciones.appendChild(btnFoto);
+        }
+
+        const btnDel = document.createElement('button');
+        btnDel.type = 'button';
+        btnDel.className = 'table-btn-action';
+        btnDel.textContent = '🗑️';
+        btnDel.title = 'Dar de baja alumno';
+        btnDel.addEventListener('click', () => borrarAlumno(alumno.nombreCompleto));
+        tdAcciones.appendChild(btnDel);
+    }
+    tr.appendChild(tdAcciones);
+
+    return tr;
+}
+
+function renderAlumnosManagement() {
+    const gridEl = document.getElementById('alumnos-status-list');
+    const tableBody = document.getElementById('alumnos-table-body');
+    const counterEl = document.getElementById('alumnos-filter-count');
+    const searchInput = document.getElementById('search-alumnos-input');
+    const filterGrupo = document.getElementById('filter-alumnos-grupo');
+
+    if (!gridEl || !tableBody) return;
+
+    const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    const grupoSel = filterGrupo ? filterGrupo.value : 'TODOS';
+
+    let filtered = alumnosCache;
+    if (grupoSel !== 'TODOS') {
+        filtered = filtered.filter(a => {
+            const g = (a.datos && a.datos.grupo) ? String(a.datos.grupo).toUpperCase() : '';
+            return g === grupoSel.toUpperCase();
+        });
+    }
+
+    if (query) {
+        filtered = filtered.filter(a => {
+            const nom = (a.nombreCompleto || '').toLowerCase();
+            const dni = (a.datos && a.datos.dni) ? String(a.datos.dni).toLowerCase() : '';
+            const grp = (a.datos && a.datos.grupo) ? String(a.datos.grupo).toLowerCase() : '';
+            const tit = (a.datos && a.datos.titulo) ? String(a.datos.titulo).toLowerCase() : '';
+            return nom.includes(query) || dni.includes(query) || grp.includes(query) || tit.includes(query);
+        });
+    }
+
+    if (counterEl) {
+        counterEl.textContent = `Mostrando ${filtered.length} de ${alumnosCache.length} alumnos`;
+    }
+
+    // Render Cuadrícula
+    gridEl.innerHTML = '';
+    if (filtered.length === 0) {
+        gridEl.innerHTML = `<p style="grid-column: 1 / -1; opacity: 0.6; padding: 1.5rem; text-align: center;">No se encontraron alumnos con el criterio de búsqueda.</p>`;
+    } else {
+        filtered.forEach(alumno => {
+            gridEl.appendChild(buildStatusItemNormal(alumno, false));
+        });
+    }
+
+    // Render Tabla
+    tableBody.innerHTML = '';
+    if (filtered.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; opacity: 0.6; padding: 1.5rem;">No se encontraron alumnos con el criterio de búsqueda.</td></tr>`;
+    } else {
+        filtered.forEach(alumno => {
+            tableBody.appendChild(buildAlumnosTableRow(alumno));
+        });
+    }
+}
 
 async function refreshAlumnosList() {
+    setupAlumnosToolbar();
     try {
         const currentCourse = cursoSelect.value;
-        const listContainers = ['alumnos-status-list', 'alumnos-status-list-asistencia']
-            .map(id => document.getElementById(id))
-            .filter(Boolean);
-
-        if (listContainers.length === 0) return;
+        const asistenciaContainer = document.getElementById('alumnos-status-list-asistencia');
+        const gridEl = document.getElementById('alumnos-status-list');
+        const tableBody = document.getElementById('alumnos-table-body');
 
         if (!currentCourse) {
-            listContainers.forEach(c => c.innerHTML = '<p style="opacity: 0.5;">Selecciona un curso para ver el estado...</p>');
+            if (gridEl) gridEl.innerHTML = '<p style="opacity: 0.5;">Selecciona un curso para ver el estado...</p>';
+            if (tableBody) tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; opacity: 0.5; padding: 1.5rem;">Selecciona un curso para ver la nómina...</td></tr>';
+            if (asistenciaContainer) asistenciaContainer.innerHTML = '<p style="opacity: 0.5;">Selecciona un curso para ver el estado...</p>';
+            alumnosCache = [];
             return;
         }
 
@@ -1471,31 +1788,64 @@ async function refreshAlumnosList() {
             return;
         }
         const alumnos = await res.json();
+        alumnosCache = Array.isArray(alumnos) ? alumnos : [];
 
-        listContainers.forEach(c => c.innerHTML = '');
-
-        if (!Array.isArray(alumnos) || alumnos.length === 0) {
-            listContainers.forEach(c => c.innerHTML = '<p style="opacity: 0.6; padding: 1rem;">No se encontraron alumnos en la planilla del curso seleccionado.</p>');
+        if (alumnosCache.length === 0) {
+            if (gridEl) gridEl.innerHTML = '<p style="opacity: 0.6; padding: 1rem;">No se encontraron alumnos en la planilla del curso seleccionado.</p>';
+            if (tableBody) tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; opacity: 0.6; padding: 1.5rem;">No se encontraron alumnos en la planilla del curso seleccionado.</td></tr>';
+            if (asistenciaContainer) asistenciaContainer.innerHTML = '<p style="opacity: 0.6; padding: 1rem;">No se encontraron alumnos en la planilla del curso seleccionado.</p>';
+            const counterEl = document.getElementById('alumnos-filter-count');
+            if (counterEl) counterEl.textContent = '0 alumnos';
             return;
         }
 
-        const presentesHoy = alumnos.filter(a => a.presenteHoy).length;
-        const tardesHoy = alumnos.filter(a => a.tardeHoy).length;
+        const presentesHoy = alumnosCache.filter(a => a.presenteHoy).length;
+        const tardesHoy = alumnosCache.filter(a => a.tardeHoy).length;
 
-        listContainers.forEach(container => {
+        // Actualizar opciones de grupos en el filtro
+        const filterGrupo = document.getElementById('filter-alumnos-grupo');
+        if (filterGrupo) {
+            const currentSelected = filterGrupo.value;
+            const gruposSet = new Set();
+            alumnosCache.forEach(a => {
+                if (a.datos && a.datos.grupo) {
+                    gruposSet.add(String(a.datos.grupo).trim().toUpperCase());
+                }
+            });
+            const sortedGrupos = Array.from(gruposSet).sort();
+            filterGrupo.innerHTML = '<option value="TODOS">👥 Todos los Grupos</option>';
+            sortedGrupos.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = `Grupo ${g}`;
+                filterGrupo.appendChild(opt);
+            });
+            if (sortedGrupos.includes(currentSelected)) {
+                filterGrupo.value = currentSelected;
+            }
+        }
+
+        // Renderizar pestaña Manejo de Alumnos (cuadrícula y tabla)
+        renderAlumnosManagement();
+
+        // Renderizar pestaña Lista y QR (Asistencia compacta)
+        if (asistenciaContainer) {
+            asistenciaContainer.innerHTML = '';
             const header = document.createElement('div');
             header.style.cssText = 'grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;';
             header.innerHTML = `
-                <span style="font-weight: 600; color: #38bdf8; font-size: 0.95rem;">📅 Presentes HOY: <span style="color: #4ade80;">${presentesHoy}</span> · 🟡 Tardes: <span style="color: #fbbf24;">${tardesHoy}</span> / ${alumnos.length}</span>
+                <span style="font-weight: 600; color: #38bdf8; font-size: 0.95rem;">📅 Presentes HOY: <span style="color: #4ade80;">${presentesHoy}</span> · 🟡 Tardes: <span style="color: #fbbf24;">${tardesHoy}</span> / ${alumnosCache.length}</span>
                 <span style="font-size: 0.75rem; opacity: 0.7;">✅ verde = presente hoy · 🟡 ámbar = llegó tarde · ⬜ gris = pendiente</span>`;
-            container.appendChild(header);
-        });
+            asistenciaContainer.appendChild(header);
 
-        alumnos.forEach(alumno => {
-            listContainers.forEach(c => {
-                c.appendChild(buildStatusItem(alumno, c.id === 'alumnos-status-list-asistencia'));
+            alumnosCache.forEach(alumno => {
+                asistenciaContainer.appendChild(buildStatusItem(alumno, true));
             });
-        });
+        }
+    } catch (err) {
+        console.error('Error al refrescar alumnos:', err);
+    }
+}
 
         // Tarjeta compacta del presente en vivo (Lista y QR): foto + nombre, click = presente, ⏰ = tarde
         function buildStatusItem(alumno, esListaAsistencia) {
@@ -1663,16 +2013,22 @@ async function refreshAlumnosList() {
             // Bloque nombre + contadores acumulados
             const infoDiv = document.createElement('div');
             infoDiv.style.minWidth = '0';
+            infoDiv.style.flex = '1 1 auto';
+            infoDiv.style.marginRight = '0.5rem';
+
             const nameSpan = document.createElement('span');
             nameSpan.style.display = 'block';
-            nameSpan.style.fontSize = '0.9rem';
+            nameSpan.style.fontSize = '0.95rem';
             nameSpan.style.fontWeight = '600';
-            nameSpan.style.overflow = 'hidden';
-            nameSpan.style.textOverflow = 'ellipsis';
-            nameSpan.style.whiteSpace = 'nowrap';
+            nameSpan.style.wordBreak = 'break-word';
+            nameSpan.style.lineHeight = '1.3';
+            nameSpan.style.marginBottom = '0.35rem';
             nameSpan.textContent = alumno.nombreCompleto;
             if (alumno.datos && alumno.datos.grupo) {
-                nameSpan.textContent += ` (Grupo: ${alumno.datos.grupo})`;
+                const grpSpan = document.createElement('span');
+                grpSpan.style.cssText = 'font-size: 0.78rem; font-weight: normal; opacity: 0.75; display: inline-block; margin-left: 0.35rem;';
+                grpSpan.textContent = `[${alumno.datos.grupo}]`;
+                nameSpan.appendChild(grpSpan);
             }
             infoDiv.appendChild(nameSpan);
 
@@ -1835,10 +2191,6 @@ async function refreshAlumnosList() {
             item.appendChild(rightDiv);
             return item;
         }
-    } catch (err) {
-        console.error('Error refreshing alumnos list', err);
-    }
-}
 
 async function guardarAsistenciaFecha() {
     try {

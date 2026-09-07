@@ -62,7 +62,24 @@ function getCookie(name) {
     return null;
 }
 
+async function loadAppVersion() {
+    try {
+        const res = await fetch('/api/version');
+        if (res.ok) {
+            const data = await res.json();
+            const vText = data.version ? `v${data.version}` : '';
+            const badge = document.getElementById('app-version-badge');
+            const footer = document.getElementById('footer-version');
+            if (badge) badge.textContent = vText;
+            if (footer) footer.textContent = vText;
+        }
+    } catch (err) {
+        // Fallback silencioso
+    }
+}
+
 async function initStudent() {
+    loadAppVersion();
     setupAutoFormHandler();
     setupAutoPresenteTardio();
     await loadStudentFormConfig();
@@ -156,9 +173,21 @@ function applyStudentFormConfig() {
         const fg = document.createElement('div');
         fg.className = 'form-group';
 
+        const header = document.createElement('div');
+        header.className = 'field-header';
+
         const label = document.createElement('label');
         label.setAttribute('for', field.id);
         label.textContent = field.label + (field.required ? ' *' : '');
+
+        const badge = document.createElement('span');
+        badge.id = `badge-custom-${field.id}`;
+        badge.className = 'field-status-badge badge-nuevo-dato';
+        badge.textContent = '⭐ Nuevo';
+
+        header.appendChild(label);
+        header.appendChild(badge);
+        fg.appendChild(header);
 
         let input;
         if (field.type === 'select') {
@@ -190,7 +219,6 @@ function applyStudentFormConfig() {
             input.setAttribute('required', 'true');
         }
 
-        fg.appendChild(label);
         fg.appendChild(input);
         customContainer.appendChild(fg);
     });
@@ -204,17 +232,43 @@ async function checkRegistrationStatus() {
             return; 
         }
 
-        const res = await fetch('/api/check-registration');
-        const data = await res.json();
-
-        // También chequeamos localStorage como doble validación
-        const localRegistered = localStorage.getItem(`registered_${currentActiveCourseName}`);
-
-        if (data.registered || localRegistered) {
-            document.getElementById('search-section').style.display = 'none';
-            document.getElementById('form-section').style.display = 'none';
-            document.getElementById('registered-section').style.display = 'block';
+        // Configurar botón "Ver y Modificar Mis Datos" si registered-section llega a mostrarse
+        const btnVerModificar = document.getElementById('btn-ver-modificar-datos');
+        if (btnVerModificar && btnVerModificar.dataset.ready !== 'true') {
+            btnVerModificar.dataset.ready = 'true';
+            btnVerModificar.addEventListener('click', () => {
+                document.getElementById('registered-section').style.display = 'none';
+                document.getElementById('search-section').style.display = 'block';
+                if (selectedAlumnoId !== null) {
+                    document.getElementById('form-section').style.display = 'block';
+                }
+            });
         }
+
+        const token = getSavedStudentToken();
+        if (token) {
+            // Si el alumno tiene token guardado en este dispositivo, precargar su ficha directamente
+            try {
+                const fichaRes = await fetch('/api/alumno/mi-ficha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, curso: currentActiveCourseName })
+                });
+                const fichaData = await fichaRes.json();
+                if (fichaData.success && fichaData.alumno) {
+                    document.getElementById('search-section').style.display = 'none';
+                    document.getElementById('registered-section').style.display = 'none';
+                    cargarDatosEnFormulario(fichaData.alumno);
+                    document.getElementById('form-section').style.display = 'block';
+                    return;
+                }
+            } catch (errFicha) {
+                console.warn('No se pudo precargar ficha automáticamente por token:', errFicha);
+            }
+        }
+
+        // Si no hay token o falló la precarga, NO bloqueamos con pantalla ciega;
+        // dejamos search-section visible para que el alumno pueda buscar su nombre y ver sus datos.
     } catch (err) {
         console.error('Error checking registration status', err);
     }
@@ -430,11 +484,30 @@ function renderAutoFormulario(perfil) {
         const fg = document.createElement('div');
         fg.className = 'form-group';
 
+        const header = document.createElement('div');
+        header.className = 'field-header';
+
         const label = document.createElement('label');
         label.setAttribute('for', field.id);
         label.textContent = field.label;
 
+        const badge = document.createElement('span');
+        badge.className = 'field-status-badge';
+
         const valor = field.custom ? customValues[field.key] : datos[field.key];
+        const tieneValor = valor !== undefined && valor !== null && String(valor).trim() !== '' && String(valor).trim() !== 'NO ESPECIFICADO' && String(valor).trim() !== 'SIN DNI' && String(valor).trim() !== 'SIN GRUPO';
+
+        if (tieneValor) {
+            badge.classList.add('badge-incorporado');
+            badge.textContent = '✓ Guardado';
+        } else {
+            badge.classList.add('badge-nuevo-dato');
+            badge.textContent = '⭐ Nuevo';
+        }
+
+        header.appendChild(label);
+        header.appendChild(badge);
+        fg.appendChild(header);
 
         let input;
         if (field.type === 'select') {
@@ -481,12 +554,17 @@ function renderAutoFormulario(perfil) {
             input.placeholder = `Ingresa ${field.label.toLowerCase()}...`;
         }
 
+        if (tieneValor) {
+            input.classList.add('input-highlight-guardado');
+        } else {
+            input.classList.add('input-highlight-nuevo');
+        }
+
         if (field.required && !valor) {
             input.setAttribute('required', 'true');
             label.textContent += ' *';
         }
 
-        fg.appendChild(label);
         fg.appendChild(input);
         container.appendChild(fg);
     });
@@ -816,13 +894,225 @@ document.addEventListener('click', (e) => {
     }
 });
 
-function selectAlumno(alumno) {
+function actualizarBadgesDeCampos(datos = {}, customValues = {}) {
+    const stdFields = [
+        { key: 'email', badgeId: 'badge-email', inputId: 'email' },
+        { key: 'dni', badgeId: 'badge-dni', inputId: 'dni' },
+        { key: 'titulo', badgeId: 'badge-titulo', inputId: 'titulo' },
+        { key: 'tecnologia', badgeId: 'badge-tecnologia', inputId: 'tecnologia' },
+        { key: 'grupo', badgeId: 'badge-grupo', inputId: 'grupo' },
+        { key: 'telefono', badgeId: 'badge-telefono', inputId: 'telefono' }
+    ];
+
+    stdFields.forEach(f => {
+        const badge = document.getElementById(f.badgeId);
+        const input = document.getElementById(f.inputId);
+        const val = datos[f.key];
+        const tieneValor = val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'NO ESPECIFICADO' && String(val).trim() !== 'SIN DNI' && String(val).trim() !== 'SIN GRUPO';
+
+        if (badge) {
+            if (tieneValor) {
+                badge.className = 'field-status-badge badge-incorporado';
+                badge.textContent = '✓ Guardado';
+            } else {
+                badge.className = 'field-status-badge badge-nuevo-dato';
+                badge.textContent = '⭐ Nuevo';
+            }
+        }
+        if (input) {
+            if (tieneValor) {
+                input.classList.remove('input-highlight-nuevo');
+                input.classList.add('input-highlight-guardado');
+            } else {
+                input.classList.remove('input-highlight-guardado');
+                input.classList.add('input-highlight-nuevo');
+            }
+        }
+    });
+
+    if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
+        currentStudentFormConfig.customFields.forEach(cf => {
+            const badge = document.getElementById(`badge-custom-${cf.id}`);
+            const input = document.getElementById(cf.id);
+            const val = customValues[cf.id];
+            const tieneValor = val !== undefined && val !== null && String(val).trim() !== '';
+
+            if (badge) {
+                if (tieneValor) {
+                    badge.className = 'field-status-badge badge-incorporado';
+                    badge.textContent = '✓ Guardado';
+                } else {
+                    badge.className = 'field-status-badge badge-nuevo-dato';
+                    badge.textContent = '⭐ Nuevo dato pedido';
+                }
+            }
+            if (input) {
+                if (tieneValor) {
+                    input.classList.remove('input-highlight-nuevo');
+                    input.classList.add('input-highlight-guardado');
+                } else {
+                    input.classList.remove('input-highlight-guardado');
+                    input.classList.add('input-highlight-nuevo');
+                }
+            }
+        });
+    }
+}
+
+function cargarDatosEnFormulario(alumnoData) {
+    if (!alumnoData) return;
+    selectedAlumnoId = alumnoData.id;
+    selectedAlumnoLabel.textContent = `Ficha de: ${alumnoData.nombreCompleto}`;
+    if (alumnoSearch) alumnoSearch.value = alumnoData.nombreCompleto;
+
+    const datos = alumnoData.datos || {};
+    const customValues = alumnoData.customValues || {};
+    const asist = alumnoData.asistenciaHoy || {};
+
+    const emailEl = document.getElementById('email');
+    if (emailEl) emailEl.value = datos.email || '';
+
+    const dniEl = document.getElementById('dni');
+    if (dniEl) dniEl.value = datos.dni || '';
+
+    const telEl = document.getElementById('telefono');
+    if (telEl) telEl.value = datos.telefono || '';
+
+    const titEl = document.getElementById('titulo');
+    if (titEl && datos.titulo) {
+        const existe = Array.from(titEl.options).some(o => o.value.trim().toUpperCase() === datos.titulo.trim().toUpperCase());
+        if (!existe && datos.titulo.trim()) {
+            const opt = document.createElement('option');
+            opt.value = datos.titulo.trim().toUpperCase();
+            opt.textContent = datos.titulo.trim().toUpperCase();
+            titEl.appendChild(opt);
+        }
+        titEl.value = datos.titulo.trim().toUpperCase();
+    }
+
+    const tecEl = document.getElementById('tecnologia');
+    if (tecEl && datos.tecnologia) {
+        const existe = Array.from(tecEl.options).some(o => o.value.trim().toUpperCase() === datos.tecnologia.trim().toUpperCase());
+        if (!existe && datos.tecnologia.trim()) {
+            const opt = document.createElement('option');
+            opt.value = datos.tecnologia.trim().toUpperCase();
+            opt.textContent = datos.tecnologia.trim().toUpperCase();
+            tecEl.appendChild(opt);
+        }
+        tecEl.value = datos.tecnologia.trim().toUpperCase();
+    }
+
+    const grpEl = document.getElementById('grupo');
+    if (grpEl && datos.grupo) {
+        const existe = Array.from(grpEl.options).some(o => o.value.trim().toUpperCase() === datos.grupo.trim().toUpperCase());
+        if (!existe && datos.grupo.trim()) {
+            const opt = document.createElement('option');
+            opt.value = datos.grupo.trim().toUpperCase();
+            opt.textContent = datos.grupo.trim().toUpperCase();
+            grpEl.appendChild(opt);
+        }
+        grpEl.value = datos.grupo.trim().toUpperCase();
+    }
+
+    if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
+        currentStudentFormConfig.customFields.forEach(f => {
+            const inp = document.getElementById(f.id);
+            if (inp) {
+                const val = customValues[f.id];
+                if (val !== undefined && val !== null) {
+                    inp.value = val;
+                }
+            }
+        });
+    }
+
+    if (alumnoData.fotoUrl) {
+        const img = document.getElementById('foto-preview-img');
+        const box = document.getElementById('foto-preview-box');
+        if (img && box) {
+            img.src = alumnoData.fotoUrl;
+            box.style.display = 'block';
+        }
+        const fotoBadge = document.getElementById('badge-foto');
+        if (fotoBadge) {
+            fotoBadge.className = 'field-status-badge badge-incorporado';
+            fotoBadge.textContent = '✓ Foto guardada';
+        }
+    } else {
+        const fotoBadge = document.getElementById('badge-foto');
+        if (fotoBadge) {
+            fotoBadge.className = 'field-status-badge badge-nuevo-dato';
+            fotoBadge.textContent = '⭐ Foto requerida';
+        }
+    }
+
+    actualizarBadgesDeCampos(datos, customValues);
+
+    const banner = document.getElementById('asistencia-status-banner');
+    const submitBtn = document.getElementById('btn-submit-registro');
+    const noteText = document.getElementById('form-attendance-note');
+
+    if (asist.registrada) {
+        if (banner) {
+            banner.style.display = 'flex';
+            banner.className = 'asistencia-banner asistencia-banner-success';
+            banner.innerHTML = `<span>✅</span> <div><strong>Asistencia de hoy registrada:</strong> Tu presente fue asentado como <strong>${asist.estado || 'PRESENTES'}</strong> a las <strong>${asist.hora || ''}</strong>.<br><small style="opacity:0.9;">Podés verificar o actualizar tus datos y responder preguntas de clase sin duplicar tu presente.</small></div>`;
+        }
+        if (submitBtn) {
+            submitBtn.textContent = '💾 GUARDAR CAMBIOS EN MIS DATOS';
+        }
+        if (noteText) {
+            noteText.innerHTML = `🔒 <strong>Tu asistencia de hoy ya está asegurada (${asist.estado || 'PRESENTES'}).</strong> Al guardar, se actualizarán tus datos en la planilla sin duplicar el presente.`;
+        }
+    } else {
+        if (banner) {
+            banner.style.display = 'flex';
+            banner.className = 'asistencia-banner asistencia-banner-pending';
+            banner.innerHTML = `<span>📝</span> <div><strong>Asistencia del día pendiente:</strong> Revisa o completa tus datos y envía el formulario para registrar tu presente hoy.</div>`;
+        }
+        if (submitBtn) {
+            submitBtn.textContent = '✅ DAR MI PRESENTE Y GUARDAR DATOS';
+        }
+        if (noteText) {
+            noteText.innerHTML = `📌 <strong>Al enviar este formulario se registrará automáticamente tu estado de PRESENTE para la clase de hoy.</strong>`;
+        }
+    }
+
+    formSection.style.display = 'block';
+}
+
+async function selectAlumno(alumno) {
     selectedAlumnoId = alumno.id;
-    selectedAlumnoLabel.textContent = `Datos para: ${alumno.nombreCompleto}`;
+    selectedAlumnoLabel.textContent = `Cargando datos para: ${alumno.nombreCompleto}...`;
     alumnoSearch.value = alumno.nombreCompleto;
     resultsList.innerHTML = '';
     formSection.style.display = 'block';
     formSection.scrollIntoView({ behavior: 'smooth' });
+    showFeedback('Verificando datos guardados en la planilla...', 'info');
+
+    try {
+        const token = getSavedStudentToken();
+        const res = await fetch('/api/alumno/mi-ficha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                curso: currentActiveCourseName,
+                alumnoId: alumno.id,
+                nombreCompleto: alumno.nombreCompleto,
+                token
+            })
+        });
+        const data = await res.json();
+        if (data.success && data.alumno) {
+            cargarDatosEnFormulario(data.alumno);
+            showFeedback('', '');
+        } else {
+            showFeedback('Listo. Completa tus datos a continuación.', 'info');
+        }
+    } catch (err) {
+        console.error('Error al consultar ficha del alumno:', err);
+        showFeedback('Listo. Completa tus datos a continuación.', 'info');
+    }
 }
 
 registroForm.addEventListener('submit', async (e) => {
@@ -856,6 +1146,10 @@ registroForm.addEventListener('submit', async (e) => {
         demo: isDemo
     };
 
+    const submitBtn = document.getElementById('btn-submit-registro');
+    if (submitBtn) submitBtn.disabled = true;
+    showFeedback('Guardando datos y verificando asistencia...', 'info');
+
     try {
         const res = await fetch('/api/registro', {
             method: 'POST',
@@ -869,21 +1163,41 @@ registroForm.addEventListener('submit', async (e) => {
                 saveStudentToken(result.token);
             }
 
-            // Guardar en localStorage para este curso específico (si no es demo)
             if (!isDemo) {
                 localStorage.setItem(`registered_${currentActiveCourseName}`, 'true');
             }
 
-            showFeedback(isDemo ? '¡DEMO COMPLETADA! No se guardaron datos.' : '¡Registro completado con éxito! Gracias.', 'success');
-            registroForm.reset();
-            setTimeout(() => {
-                location.reload(); // Recargar para aplicar el bloqueo visual
-            }, 2000);
+            if (result.yaTeniaPresente) {
+                showFeedback(`💾 ¡Tus datos fueron actualizados con éxito! Tu presente de hoy se mantiene registrado (${result.estadoAsistencia || 'PRESENTE'} a las ${result.horaRegistro || ''}).`, 'success');
+            } else {
+                showFeedback(`✅ ¡Presente registrado (${result.estadoAsistencia || 'PRESENTE'} a las ${result.horaRegistro || ''}) y datos guardados con éxito!`, 'success');
+            }
+
+            // Actualizar en caliente la ficha del alumno en el formulario
+            try {
+                const fichaRes = await fetch('/api/alumno/mi-ficha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        curso: currentActiveCourseName,
+                        alumnoId: selectedAlumnoId,
+                        token: result.token || getSavedStudentToken()
+                    })
+                });
+                const fichaData = await fichaRes.json();
+                if (fichaData.success && fichaData.alumno) {
+                    cargarDatosEnFormulario(fichaData.alumno);
+                }
+            } catch (errRecarga) {
+                console.warn('Error al refrescar ficha post-envío:', errRecarga);
+            }
         } else {
             showFeedback(result.error || 'Error al guardar datos. Intenta de nuevo.', 'error');
         }
     } catch (err) {
         showFeedback('Error de conexión con el servidor.', 'error');
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
     }
 });
 

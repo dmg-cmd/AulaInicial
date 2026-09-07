@@ -2,14 +2,14 @@
   "standardFields": {
     "email": {
       "label": "Email Privado",
-      "enabled": false,
+      "enabled": true,
       "required": true,
       "category": "personal",
       "options": []
     },
     "dni": {
       "label": "DNI / ID",
-      "enabled": false,
+      "enabled": true,
       "required": true,
       "category": "personal",
       "options": []
@@ -55,21 +55,21 @@
     },
     "grupo": {
       "label": "Grupo (Una sola palabra)",
-      "enabled": false,
+      "enabled": true,
       "required": true,
       "category": "personal",
       "options": []
     },
     "telefono": {
       "label": "Teléfono (Opcional)",
-      "enabled": false,
+      "enabled": true,
       "required": false,
       "category": "personal",
       "options": []
     },
     "foto": {
       "label": "Foto Real del Rostro (Identificación Visual)",
-      "enabled": false,
+      "enabled": true,
       "required": true,
       "category": "personal",
       "options": []
@@ -90,11 +90,82 @@
       ],
       "enabled": true,
       "required": false
+    },
+    {
+      "id": "custom_1788809388332",
+      "label": "Ámbito de trabajo actual",
+      "name": "Ámbito de trabajo actual",
+      "type": "text",
+      "category": "personal",
+      "options": [],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1788809523508",
+      "label": "¿Cómo describirías tu relación cotidiana con las herramientas digitales y tecnológicas?",
+      "name": "¿Cómo describirías tu relación cotidiana con las herramientas digitales y tecnológicas?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Prudente / Básica: Uso lo indispensable",
+        "Resolutiva / Intermedia: Me defiendo bien en el día a día y aprendo sobre la marcha lo que necesito",
+        "Cómoda / Avanzada: Me gusta probar aplicaciones nuevas y suelo resolver problemas técnicos sin dificultad",
+        "Entusiasta: Investigo constantemente y me gusta incorporar novedades digitales en mi trabajo."
+      ],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1788809658114",
+      "label": "¿Cuál ha sido tu punto de contacto más significativo con la Educación a Distancia hasta hoy?",
+      "name": "¿Cuál ha sido tu punto de contacto más significativo con la Educación a Distancia hasta hoy?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Fui estudiante en cursos o materias virtuales durante la pandemia",
+        "Tuve que dictar clases virtuales de emergencia en mi profesión o materia",
+        "Cursé diplomaturas carreras o posgrados completos a distancia",
+        "Casi no he tenido experiencia formal con la modalidad a distancia."
+      ],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1788809777553",
+      "label": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
+      "name": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Google Classroom",
+        "Moodle",
+        "Microsoft Teams",
+        "Campus virtual propio de universidad o empresa",
+        "Ninguna de las anteriores"
+      ],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1788809879712",
+      "label": "«A tu criterio, ¿cuál es el mayor desafío o riesgo al educar a distancia?",
+      "name": "«A tu criterio, ¿cuál es el mayor desafío o riesgo al educar a distancia?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "La frialdad humana: La pérdida del contacto cara a cara y la empatía",
+        "La deserción: Que los estudiantes se sientan solos y abandonen",
+        "La sobrecarga docente: El tiempo que insume preparar materiales y responder consultas",
+        "La brecha técnica: La conectividad inestable y la dificultad con las herramientas"
+      ],
+      "enabled": true,
+      "required": false
     }
   ],
   "asistencia": {
     "permitirPresenteTardio": true,
     "horaLimite": ""
   },
-  "cursoPreferido": "TTE - PDS Inspt agosto 2025.xlsx"
+  "cursoPreferido": "TED - PDS San Miguel mayo 2025.xlsx"
 }

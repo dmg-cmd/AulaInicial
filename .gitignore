@@ -6,8 +6,18 @@ yarn-error.log*
 package-lock.json
 
 # Planillas de datos reales de alumnos y cursos (Datos Sensibles / Privacidad)
+*.xlsx
+**/*.xlsx
 cursos/*.xlsx
 registros/*.xlsx
+**/cursos/*.xlsx
+**/registros/*.xlsx
+**/fotos/
+
+# Carpetas de distribución y builds
+dist/
+**/dist/
+refactorizado/dist/
 
 # Archivos de configuración de entorno y secretos
 .env

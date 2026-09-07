@@ -21,7 +21,10 @@
     <!-- Pantalla de Login (protegida) -->
     <div id="login-screen" class="mig1">
         <div class="card glass mig2">
-            <h1 class="mig3">🔒 Panel del Docente</h1>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 0.65rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <h1 class="mig3" style="margin: 0;">🔒 Panel del Docente</h1>
+                <span id="login-version-badge" class="version-badge" title="Versión de AulaInicial">...</span>
+            </div>
             <p class="mig4">Ingresa la contraseña para acceder a la administración.</p>
             <form id="login-form" class="mig5">
                 <label for="login-pass" class="mig6">Contraseña:</label>
@@ -76,7 +79,10 @@
         <header>
             <div class="header-content">
                 <div class="header-text">
-                    <h1>Panel del Docente</h1>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                        <h1 style="margin: 0;">Panel del Docente</h1>
+                        <span id="admin-version-badge" class="version-badge" title="Versión de AulaInicial">...</span>
+                    </div>
                     <p>Gestiona el curso, toma asistencia y visualiza datos en tiempo real</p>
                 </div>
 
@@ -207,9 +213,55 @@
                         </div>
                     </div>
 
-                    <!-- Lista de Tarjetas de Alumnos -->
+                    <!-- Barra de herramientas: Buscador, Filtro por Grupo, Toggle Cuadrícula/Tabla y Contador -->
+                    <div class="alumnos-toolbar card glass">
+                        <div class="toolbar-search-wrap">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="search-alumnos-input" placeholder="Buscar por nombre, apellido, DNI o grupo..." autocomplete="off">
+                            <button type="button" id="btn-clear-search-alumnos" class="btn-clear-search" title="Limpiar búsqueda" style="display: none;">✖</button>
+                        </div>
+                        <div class="toolbar-filters-wrap">
+                            <select id="filter-alumnos-grupo" title="Filtrar por grupo">
+                                <option value="TODOS">👥 Todos los Grupos</option>
+                            </select>
+                            <div class="view-mode-toggle" role="group" aria-label="Modo de vista">
+                                <button type="button" id="btn-view-cards" class="view-toggle-btn active" title="Vista Cuadrícula">
+                                    🔲 Cuadrícula
+                                </button>
+                                <button type="button" id="btn-view-table" class="view-toggle-btn" title="Vista Lista Detallada">
+                                    📋 Lista Detallada
+                                </button>
+                            </div>
+                        </div>
+                        <div class="toolbar-counter">
+                            <span id="alumnos-filter-count">Cargando nómina...</span>
+                        </div>
+                    </div>
+
+                    <!-- 1. Contenedor Vista Cuadrícula (Cards) -->
                     <div id="alumnos-status-list" class="status-grid">
                         <p class="mig38">Selecciona un curso para ver los alumnos...</p>
+                    </div>
+
+                    <!-- 2. Contenedor Vista Tabla / Lista Detallada (inicialmente oculto) -->
+                    <div id="alumnos-table-wrapper" class="alumnos-table-wrapper" style="display: none;">
+                        <table class="admin-table-glass" id="alumnos-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; text-align: center;">Foto</th>
+                                    <th>Alumno (Apellido y Nombre)</th>
+                                    <th>DNI / ID</th>
+                                    <th>Grupo</th>
+                                    <th>Especialidad / Título</th>
+                                    <th style="text-align: center;">Hoy</th>
+                                    <th style="text-align: center;">Asistencias</th>
+                                    <th style="text-align: center; width: 140px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alumnos-table-body">
+                                <tr><td colspan="8" style="text-align: center; opacity: 0.6; padding: 1.5rem;">Cargando lista...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>

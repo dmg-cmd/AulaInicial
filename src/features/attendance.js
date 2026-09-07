@@ -8,6 +8,7 @@ const { state } = require('../core/state');
 const { isFullyRegistered } = require('../utils/validation');
 const { todaySheetName, normalizeSheetDate, leerCfgTardanza, leerHoraTomaLista,
     guardarCfgTardanza, guardarHoraTomaLista } = require('../features/late');
+const { APP_VERSION } = require('../config/env');
 
 
 function normalizeGrupoStr(g) {
@@ -476,7 +477,11 @@ function registerAttendanceRoutes(app) {
     });
 
     app.get('/api/server-info', (req, res) => {
-        res.json(state.serverInfo);
+        res.json({ ...state.serverInfo, version: APP_VERSION });
+    });
+
+    app.get('/api/version', (req, res) => {
+        res.json({ version: APP_VERSION });
     });
 }
 

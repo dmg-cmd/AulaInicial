@@ -66,4 +66,15 @@ function getLocalIPs() {
     return ips;
 }
 
-module.exports = { PORT, ROOT_DIR, ALLOWED_ORIGINS, HMAC_SECRET, getLocalIPs };
+let APP_VERSION = '4.3.1';
+try {
+    const pkgPath = path.join(ROOT_DIR, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (pkg.version) APP_VERSION = pkg.version;
+    }
+} catch (err) {
+    // fallback a 4.3.1
+}
+
+module.exports = { PORT, ROOT_DIR, ALLOWED_ORIGINS, HMAC_SECRET, getLocalIPs, APP_VERSION };
