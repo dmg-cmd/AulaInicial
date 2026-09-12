@@ -2,7 +2,7 @@
 
 Plataforma **portátil, autónoma y de cero configuración** para gestionar asistencia, registros iniciales de alumnos, verificación interactiva de datos e identificación visual en aulas presenciales o virtuales. Diseñada para funcionar directamente desde una memoria USB en la PC del aula, sin requerir instalación de software en los dispositivos de los estudiantes ni en el equipo docente.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-4.3.1-6366f1.svg)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-4.4.0-6366f1.svg)
 ![Node](https://img.shields.io/badge/node->=22.0.0-green.svg)
 ![Licencia](https://img.shields.io/badge/licencia-Educativa-blue.svg)
 
@@ -58,15 +58,24 @@ npm start
 
 Comandos útiles:
 ```bash
-npm run lint         # Análisis estático de sintaxis
-npm test             # Pruebas de integración de endpoints
-npm run build:win    # Compila el binario bin/AulaInicial.exe
-npm run build:linux  # Compila el binario bin/AulaInicial-linux
+npm run lint               # Análisis estático de sintaxis
+npm test                   # Pruebas de integración de endpoints
+npm run build:win          # Compila el binario bin/AulaInicial.exe (Windows)
+npm run build:linux        # Compila el binario bin/AulaInicial-linux (Linux)
+npm run build:macos-arm64  # Compila el binario bin/AulaInicial-macos-arm64 (Apple Silicon M1-M4)
+npm run build:macos-x64    # Compila el binario bin/AulaInicial-macos-x64 (Intel Mac)
+npm run build:macos        # Compila ambas arquitecturas para Mac
 ```
 
 ---
 
 ## 📋 Novedades Recientes
+
+### Versión 4.4.0 (2026-09-12)
+- **Compatibilidad con Computadoras Apple (macOS):** Soporte oficial para computadoras Mac con arquitecturas Apple Silicon (`arm64`, chips M1/M2/M3/M4) y procesadores Intel (`x86_64`).
+- **Scripts de Compilación para macOS:** Comandos `build:macos-arm64`, `build:macos-x64` y `build:macos` integrados en el ecosistema de empaquetado.
+- **Script de Inicio Universal (`start.sh`):** Detección automática de macOS (`Darwin`) y arquitectura de hardware, asignación de permisos de ejecución (`chmod +x`), arranque con Node.js y descarga autónoma del binario adecuado desde GitHub Releases.
+- **Automatización en GitHub Actions:** Actualización del flujo `release.yml` incorporando runners oficiales `macos-latest` y `macos-13` para compilar y generar los binarios de Apple automáticamente al crear cada Release.
 
 ### Versión 4.3.1 (2026-09-07)
 - **Corrección de Capa en Desplegable (*Stacking Context*):** Se elevó el apilamiento de la sección de búsqueda y la lista de sugerencias (`z-index: 1000`), evitando que la tarjeta inferior de grupos con `backdrop-filter` solape la lista.

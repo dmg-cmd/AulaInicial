@@ -8,6 +8,9 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 
 | Plan | Versión | Título / Objetivo | Estado | Fecha de Cierre |
 | :--- | :---: | :--- | :---: | :---: |
+| [Plan 35](file:///e:/Sandbox/AulaInicial/Docs/planes/35-soporte-compilacion-macos-apple.md) | **v4.4.0** | Soporte y compilación para computadoras Apple (macOS Apple Silicon e Intel) | **Finalizado ✅** | 2026-09-12 |
+| [Plan 34](file:///e:/Sandbox/AulaInicial/Docs/planes/34-actualizacion-readme-mejoras-github.md) | **v4.3.1** | Publicación y actualización de mejoras en el README de GitHub | **Finalizado ✅** | 2026-09-07 |
+| [Plan 33](file:///e:/Sandbox/AulaInicial/Docs/planes/33-auditoria-compilacion-publicacion-github.md) | **v4.3.1** | Auditoría DLP, compilación de binarios y publicación a GitHub | **Finalizado ✅** | 2026-09-07 |
 | [Plan 32](file:///e:/Sandbox/AulaInicial/Docs/planes/32-mejora-ux-desplegable-alumnos-espaciado.md) | **v4.3.1** | Elevación de capa en lista de alumnos, ampliación de altura visible y separación del botón de grupos | **Finalizado ✅** | 2026-09-07 |
 | [Plan 31](file:///e:/Sandbox/AulaInicial/Docs/planes/31-reglas-alcance-permisos-archivos.md) | **v4.3.0** | Reglas estrictas de alcance y permisos de archivos dentro del repositorio | **Finalizado ✅** | 2026-09-06 |
 | [Plan 30](file:///e:/Sandbox/AulaInicial/Docs/planes/30-formulario-dinamico-verificacion-modificacion-alumnos.md) | **v4.3.0** | Formulario dinámico en móvil, precarga de datos, verificación reactiva y bloqueo de doble presente diario | **Finalizado ✅** | 2026-09-06 |
@@ -17,6 +20,14 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 ---
 
 ## 📋 Detalle de Mejoras por Versión
+
+### Versión 4.4.0 (2026-09-12)
+- **Plan asociado:** [`Docs/planes/35-soporte-compilacion-macos-apple.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/35-soporte-compilacion-macos-apple.md)
+- **Novedades de plataforma y portabilidad:**
+  1. **Compatibilidad con computadoras Apple (macOS):** Soporte oficial para arquitecturas Apple Silicon (chips M1, M2, M3, M4 con `arm64`) y procesadores Intel Mac (`x86_64`).
+  2. **Scripts de compilación dedicados:** Inclusión de `build:macos-arm64`, `build:macos-x64` y `build:macos` en `package.json`.
+  3. **Script de inicio universal (`start.sh`):** Detección dinámica de macOS (`Darwin`), identificación de arquitectura de CPU, asignación automática de permisos de ejecución (`chmod +x`), arranque con Node.js y descarga automática desde GitHub Releases.
+  4. **Automatización en GitHub Actions:** Actualización de `release.yml` para compilar y generar los binarios de macOS en runners oficiales de Apple.
 
 ### Versión 4.3.1 (2026-09-07)
 - **Plan asociado:** [`Docs/planes/32-mejora-ux-desplegable-alumnos-espaciado.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/32-mejora-ux-desplegable-alumnos-espaciado.md)

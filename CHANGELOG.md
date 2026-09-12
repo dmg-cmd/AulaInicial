@@ -3,6 +3,16 @@
 Todos los cambios notables en este proyecto están documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-09-12
+### Añadido
+- **Soporte y compilación para computadoras Apple (macOS)**:
+  - Soporte para arquitecturas **Apple Silicon** (`node22-macos-arm64` para chips M1, M2, M3, M4) e **Intel Mac** (`node22-macos-x64`).
+  - Nuevos scripts de build en `package.json`: `npm run build:macos-arm64`, `npm run build:macos-x64`, `npm run build:macos` y `build` universal.
+  - Actualización de `start.sh`: Detección automática de macOS (`Darwin`) y arquitectura de procesador (`arm64` / `x86_64`), ejecución directa de binarios con permisos `chmod +x`, modo Node.js de respaldo y descarga automática desde GitHub Releases.
+  - Integración en GitHub Actions: Workflow `release.yml` actualizado con runners oficiales `macos-latest` (Apple Silicon) y `macos-13` (Intel) para compilar y adjuntar los binarios de macOS en cada Release.
+
+---
+
 ## [4.3.1] - 2026-09-07
 ### Corregido
 - **Elevación de capa y visibilidad en lista desplegable de alumnos (`.results-list`)**: Se configuró `#search-section` con `position: relative; z-index: 50;` y se elevó el apilamiento de `.results-list` a `z-index: 1000`, evitando que la tarjeta inferior de grupos con efecto cristalino (`backdrop-filter`) solape y tape los nombres desplegados.
