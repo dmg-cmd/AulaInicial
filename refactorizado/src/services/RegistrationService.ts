@@ -130,10 +130,10 @@ export class RegistrationService {
           }
           const idxInDate = dateData.findIndex(r => (r['Alumno'] || r['Nombre'] || '').toString().trim().toLowerCase() === alumnoName.toLowerCase());
           const filaFechaObj = {
-            'DNI': datos.dni || alumno['DNI'] || 'SIN DNI',
+            'DNI': String(datos.dni || alumno['DNI'] || 'SIN DNI').trim(),
             'Alumno': alumnoName,
             'Asistencia': 'PRESENTES',
-            'Grupo': (alumno['Grupo'] || datos.grupo || 'SIN GRUPO').toString().toUpperCase().trim(),
+            'Grupo': String(alumno['Grupo'] || datos.grupo || 'SIN GRUPO').toUpperCase().trim(),
             'Hora Registro': horaActual
           };
           if (idxInDate >= 0) dateData[idxInDate] = filaFechaObj;

@@ -1,10 +1,10 @@
 {
   "name": "aulainicial",
-  "version": "4.4.0",
+  "version": "4.8.2",
   "main": "index.js",
   "scripts": {
     "lint": "node --check server.js && node --check index.js && node --check admin.js",
-    "test": "node test/smoke.js",
+    "test": "node test/smoke.js && node test/registro-guardar.test.js",
     "build:win": "node ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node22-win-x64 --output bin/AulaInicial.exe",
     "build:linux": "node ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node22-linux-x64 --output bin/AulaInicial-linux",
     "build:macos-arm64": "node ./node_modules/@yao-pkg/pkg/lib-es5/bin.js . --targets node22-macos-arm64 --output bin/AulaInicial-macos-arm64",

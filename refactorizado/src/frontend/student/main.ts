@@ -70,7 +70,7 @@ let currentStudentFormConfig: FormConfig | null = null;
 let currentAutoAlumnoId: string | null = null;
 let currentSelectedFotoData: string | null = null;
 
-const AUTO_INPUT_STYLE = 'width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; font-size: 1rem; font-family: inherit;';
+const AUTO_INPUT_STYLE = 'width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff; font-size: 1rem; font-family: inherit; font-weight: 600;';
 
 function isDemo(): boolean {
   return new URLSearchParams(window.location.search).get('demo') === 'true';
@@ -201,8 +201,43 @@ function applyStudentFormConfig(): void {
     label.setAttribute('for', field.id);
     label.textContent = field.label + (field.required ? ' *' : '');
 
-    let input: HTMLInputElement | HTMLSelectElement;
-    if (field.type === 'select') {
+    let input: HTMLInputElement | HTMLSelectElement | HTMLElement;
+    if (field.type === 'multiselect') {
+      const multiselectBox = document.createElement('div');
+      multiselectBox.id = field.id;
+      multiselectBox.className = 'custom-multiselect-container';
+      multiselectBox.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff;';
+
+      (field.options || []).forEach(optVal => {
+        const optLabel = document.createElement('label');
+        optLabel.style.cssText = 'display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0.6rem; border-radius: 8px; font-size: 0.95rem; user-select: none; transition: background 0.15s ease, border-color 0.15s ease; border: 1px solid transparent; color: #ffffff;';
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.name = `${field.id}[]`;
+        chk.value = optVal;
+        chk.style.cssText = 'width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer; flex-shrink: 0;';
+
+        const span = document.createElement('span');
+        span.textContent = optVal;
+        span.style.cssText = 'color: #ffffff; line-height: 1.3; font-weight: 500;';
+
+        chk.addEventListener('change', () => {
+          if (chk.checked) {
+            optLabel.style.background = 'rgba(99, 102, 241, 0.25)';
+            optLabel.style.borderColor = '#6366f1';
+          } else {
+            optLabel.style.background = 'transparent';
+            optLabel.style.borderColor = 'transparent';
+          }
+        });
+
+        optLabel.appendChild(chk);
+        optLabel.appendChild(span);
+        multiselectBox.appendChild(optLabel);
+      });
+      input = multiselectBox;
+    } else if (field.type === 'select') {
       input = document.createElement('select');
       input.id = field.id;
       input.style.cssText = AUTO_INPUT_STYLE;
@@ -227,7 +262,7 @@ function applyStudentFormConfig(): void {
       input.placeholder = `Ingresa tu ${field.label.toLowerCase()}...`;
     }
 
-    if (field.required) input.setAttribute('required', 'true');
+    if (field.required && field.type !== 'multiselect') input.setAttribute('required', 'true');
 
     fg.appendChild(label);
     fg.appendChild(input);
@@ -484,8 +519,47 @@ function renderAutoFormulario(perfil: PerfilData): void {
 
     const valor = field.custom ? customValues[field.key] || '' : datos[field.key] || '';
 
-    let input: HTMLInputElement | HTMLSelectElement;
-    if (field.type === 'select') {
+    let input: HTMLInputElement | HTMLSelectElement | HTMLElement;
+    if (field.type === 'multiselect') {
+      const multiselectBox = document.createElement('div');
+      multiselectBox.id = field.id;
+      multiselectBox.className = 'custom-multiselect-container';
+      multiselectBox.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff;';
+
+      const valorParts = valor ? String(valor).split(/[,;]/).map(s => s.trim().toLowerCase()) : [];
+
+      (field.options || []).forEach(optVal => {
+        const optLabel = document.createElement('label');
+        const isChecked = valorParts.includes(String(optVal).trim().toLowerCase());
+        optLabel.style.cssText = `display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0.6rem; border-radius: 8px; font-size: 0.95rem; user-select: none; transition: background 0.15s ease, border-color 0.15s ease; border: 1.5px solid ${isChecked ? '#6366f1' : 'transparent'}; background: ${isChecked ? 'rgba(99, 102, 241, 0.25)' : 'transparent'}; color: #ffffff;`;
+
+        const chk = document.createElement('input');
+        chk.type = 'checkbox';
+        chk.name = `${field.id}[]`;
+        chk.value = optVal;
+        chk.checked = isChecked;
+        chk.style.cssText = 'width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer; flex-shrink: 0;';
+
+        chk.addEventListener('change', () => {
+          if (chk.checked) {
+            optLabel.style.background = 'rgba(99, 102, 241, 0.25)';
+            optLabel.style.borderColor = '#6366f1';
+          } else {
+            optLabel.style.background = 'transparent';
+            optLabel.style.borderColor = 'transparent';
+          }
+        });
+
+        const txt = document.createElement('span');
+        txt.textContent = optVal;
+        txt.style.cssText = 'color: #ffffff; line-height: 1.3; font-weight: 500;';
+
+        optLabel.appendChild(chk);
+        optLabel.appendChild(txt);
+        multiselectBox.appendChild(optLabel);
+      });
+      input = multiselectBox;
+    } else if (field.type === 'select') {
       input = document.createElement('select');
       input.id = field.id;
       input.name = field.key;
@@ -529,7 +603,7 @@ function renderAutoFormulario(perfil: PerfilData): void {
       input.placeholder = `Ingresa ${field.label.toLowerCase()}...`;
     }
 
-    if (field.required && !valor) {
+    if (field.required && !valor && field.type !== 'multiselect') {
       input.setAttribute('required', 'true');
       label.textContent += ' *';
     }
@@ -635,8 +709,13 @@ function setupAutoFormHandler(): void {
     if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
       currentStudentFormConfig.customFields.forEach(f => {
         if (f.enabled === false) return;
-        const el = document.getElementById('auto_' + f.id) as HTMLInputElement | HTMLSelectElement | null;
-        if (el) customValues[f.id] = el.value.trim();
+        if (f.type === 'multiselect') {
+          const checked = Array.from(document.querySelectorAll<HTMLInputElement>(`input[name="auto_${f.id}[]"]:checked`)).map(c => c.value.trim()).filter(Boolean);
+          customValues[f.id] = checked.join(', ');
+        } else {
+          const el = document.getElementById('auto_' + f.id) as HTMLInputElement | HTMLSelectElement | null;
+          if (el) customValues[f.id] = el.value.trim();
+        }
       });
     }
 
@@ -833,12 +912,22 @@ function setupRegistroForm(): void {
 
     const customValues: Record<string, string> = {};
     if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
-      currentStudentFormConfig.customFields.forEach(field => {
+      for (const field of currentStudentFormConfig.customFields) {
         if (field.enabled !== false) {
-          const inputEl = document.getElementById(field.id) as HTMLInputElement | HTMLSelectElement | null;
-          if (inputEl) customValues[field.id] = inputEl.value.trim();
+          if (field.type === 'multiselect') {
+            const checked = Array.from(document.querySelectorAll<HTMLInputElement>(`input[name="${field.id}[]"]:checked`)).map(c => c.value.trim()).filter(Boolean);
+            const joined = checked.join(', ');
+            if (field.required && !joined) {
+              alert(`Por favor selecciona al menos una opción para "${field.label}".`);
+              return;
+            }
+            customValues[field.id] = joined;
+          } else {
+            const inputEl = document.getElementById(field.id) as HTMLInputElement | HTMLSelectElement | null;
+            if (inputEl) customValues[field.id] = inputEl.value.trim();
+          }
         }
-      });
+      }
     }
 
     const data = {
@@ -980,15 +1069,17 @@ async function loadPublicGrupos(): Promise<void> {
       const miembros = gruposData[grupoName];
 
       const card = document.createElement('div');
-      card.style.background = 'rgba(255,255,255,0.05)';
-      card.style.border = '1px solid rgba(255,255,255,0.15)';
+      card.style.background = '#1e293b';
+      card.style.border = '1.5px solid rgba(255,255,255,0.22)';
       card.style.borderRadius = '1rem';
       card.style.padding = '1.2rem';
+      card.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
 
       const title = document.createElement('h3');
       title.style.margin = '0 0 0.8rem 0';
       title.style.color = '#4ade80';
-      title.style.fontSize = '1.1rem';
+      title.style.fontSize = '1.15rem';
+      title.style.fontWeight = '700';
       title.textContent = `Grupo: ${grupoName} (${miembros.length})`;
 
       const ul = document.createElement('ul');
@@ -997,20 +1088,22 @@ async function loadPublicGrupos(): Promise<void> {
       ul.style.margin = '0';
       ul.style.display = 'flex';
       ul.style.flexDirection = 'column';
-      ul.style.gap = '0.4rem';
+      ul.style.gap = '0.45rem';
 
       miembros.forEach((m: { nombreCompleto?: string; titulo?: string }) => {
         const li = document.createElement('li');
-        li.style.fontSize = '0.9rem';
-        li.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-        li.style.paddingBottom = '0.3rem';
+        li.style.fontSize = '0.95rem';
+        li.style.color = '#ffffff';
+        li.style.borderBottom = '1px dashed rgba(255,255,255,0.2)';
+        li.style.paddingBottom = '0.35rem';
 
         const strong = document.createElement('strong');
+        strong.style.color = '#ffffff';
         strong.textContent = m.nombreCompleto || '';
         li.appendChild(strong);
         li.appendChild(document.createTextNode(' '));
         const span = document.createElement('span');
-        span.style.cssText = 'opacity:0.6; font-size:0.8rem;';
+        span.style.cssText = 'color: #cbd5e1; font-size: 0.85rem; font-weight: 500;';
         span.textContent = `(${m.titulo || ''})`;
         li.appendChild(span);
         ul.appendChild(li);

@@ -190,10 +190,44 @@ function applyStudentFormConfig() {
         fg.appendChild(header);
 
         let input;
-        if (field.type === 'select') {
+        if (field.type === 'multiselect') {
+            input = document.createElement('div');
+            input.id = field.id;
+            input.className = 'custom-multiselect-container';
+            input.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff;';
+
+            (field.options || []).forEach(optVal => {
+                const optLabel = document.createElement('label');
+                optLabel.style.cssText = 'display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0.6rem; border-radius: 8px; font-size: 0.95rem; user-select: none; transition: background 0.15s ease, border-color 0.15s ease; border: 1px solid transparent; color: #ffffff;';
+
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.name = `${field.id}[]`;
+                chk.value = optVal;
+                chk.style.cssText = 'width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer; flex-shrink: 0;';
+
+                const span = document.createElement('span');
+                span.textContent = optVal;
+                span.style.cssText = 'color: #ffffff; line-height: 1.3; font-weight: 500;';
+
+                chk.addEventListener('change', () => {
+                    if (chk.checked) {
+                        optLabel.style.background = 'rgba(99, 102, 241, 0.25)';
+                        optLabel.style.borderColor = '#6366f1';
+                    } else {
+                        optLabel.style.background = 'transparent';
+                        optLabel.style.borderColor = 'transparent';
+                    }
+                });
+
+                optLabel.appendChild(chk);
+                optLabel.appendChild(span);
+                input.appendChild(optLabel);
+            });
+        } else if (field.type === 'select') {
             input = document.createElement('select');
             input.id = field.id;
-            input.style.cssText = 'width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; font-size: 1rem; font-family: inherit;';
+            input.style.cssText = 'width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff; font-size: 1rem; font-family: inherit; font-weight: 600;';
             
             const defOpt = document.createElement('option');
             defOpt.value = '';
@@ -215,7 +249,7 @@ function applyStudentFormConfig() {
             input.placeholder = `Ingresa tu ${field.label.toLowerCase()}...`;
         }
 
-        if (field.required) {
+        if (field.required && field.type !== 'multiselect') {
             input.setAttribute('required', 'true');
         }
 
@@ -416,7 +450,7 @@ async function checkAutoPresente() {
     return false;
 }
 
-const AUTO_INPUT_STYLE = 'width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; font-size: 1rem; font-family: inherit;';
+const AUTO_INPUT_STYLE = 'width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff; font-size: 1rem; font-family: inherit; font-weight: 600;';
 
 // Construye la lista de campos habilitados (estándar + custom, sin importar la categoría)
 // que se mostrarán en el auto-formulario editable del alumno.
@@ -510,7 +544,46 @@ function renderAutoFormulario(perfil) {
         fg.appendChild(header);
 
         let input;
-        if (field.type === 'select') {
+        if (field.type === 'multiselect') {
+            input = document.createElement('div');
+            input.id = field.id;
+            input.className = 'custom-multiselect-container';
+            input.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #030712; border: 1.5px solid #475569; color: #ffffff;';
+
+            const opciones = Array.isArray(field.options) && field.options.length > 0 ? field.options : [];
+            const valParts = valor ? String(valor).split(/[,;]/).map(s => s.trim().toLowerCase()) : [];
+
+            opciones.forEach(optVal => {
+                const optLabel = document.createElement('label');
+                const isChecked = valParts.includes(optVal.trim().toLowerCase());
+                optLabel.style.cssText = `display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.5rem 0.6rem; border-radius: 8px; font-size: 0.95rem; user-select: none; transition: background 0.15s ease, border-color 0.15s ease; border: 1.5px solid ${isChecked ? '#6366f1' : 'transparent'}; background: ${isChecked ? 'rgba(99, 102, 241, 0.25)' : 'transparent'}; color: #ffffff;`;
+
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.name = `${field.id}[]`;
+                chk.value = optVal;
+                chk.checked = isChecked;
+                chk.style.cssText = 'width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer; flex-shrink: 0;';
+
+                chk.addEventListener('change', () => {
+                    if (chk.checked) {
+                        optLabel.style.background = 'rgba(99, 102, 241, 0.25)';
+                        optLabel.style.borderColor = '#6366f1';
+                    } else {
+                        optLabel.style.background = 'transparent';
+                        optLabel.style.borderColor = 'transparent';
+                    }
+                });
+
+                const txt = document.createElement('span');
+                txt.textContent = optVal;
+                txt.style.cssText = 'color: #ffffff; line-height: 1.3; font-weight: 500;';
+
+                optLabel.appendChild(chk);
+                optLabel.appendChild(txt);
+                input.appendChild(optLabel);
+            });
+        } else if (field.type === 'select') {
             input = document.createElement('select');
             input.id = field.id;
             input.name = field.key;
@@ -680,8 +753,14 @@ function setupAutoFormHandler() {
         if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
             currentStudentFormConfig.customFields.forEach(f => {
                 if (f.enabled === false) return;
-                const el = document.getElementById('auto_' + f.id);
-                if (el) customValues[f.id] = el.value.trim();
+                if (f.type === 'multiselect') {
+                    const checkedBoxes = document.querySelectorAll(`input[name="auto_${f.id}[]"]:checked`);
+                    const selected = Array.from(checkedBoxes).map(cb => cb.value.trim()).filter(v => v);
+                    customValues[f.id] = selected.join(', ');
+                } else {
+                    const el = document.getElementById('auto_' + f.id);
+                    if (el) customValues[f.id] = el.value.trim();
+                }
             });
         }
 
@@ -1016,10 +1095,22 @@ function cargarDatosEnFormulario(alumnoData) {
 
     if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
         currentStudentFormConfig.customFields.forEach(f => {
-            const inp = document.getElementById(f.id);
-            if (inp) {
-                const val = customValues[f.id];
-                if (val !== undefined && val !== null) {
+            const val = customValues[f.id];
+            if (f.type === 'multiselect') {
+                const checkedBoxes = document.querySelectorAll(`input[name="${f.id}[]"]`);
+                const valParts = (val !== undefined && val !== null) ? String(val).split(/[,;]/).map(s => s.trim().toLowerCase()) : [];
+                checkedBoxes.forEach(chk => {
+                    const isChecked = valParts.includes(chk.value.trim().toLowerCase());
+                    chk.checked = isChecked;
+                    const parentLabel = chk.closest('label');
+                    if (parentLabel) {
+                        parentLabel.style.background = isChecked ? 'rgba(99, 102, 241, 0.16)' : 'transparent';
+                        parentLabel.style.borderColor = isChecked ? 'rgba(99, 102, 241, 0.4)' : 'transparent';
+                    }
+                });
+            } else {
+                const inp = document.getElementById(f.id);
+                if (inp && val !== undefined && val !== null) {
                     inp.value = val;
                 }
             }
@@ -1122,14 +1213,25 @@ registroForm.addEventListener('submit', async (e) => {
 
     const customValues = {};
     if (currentStudentFormConfig && currentStudentFormConfig.customFields) {
-        currentStudentFormConfig.customFields.forEach(field => {
+        for (const field of currentStudentFormConfig.customFields) {
             if (field.enabled !== false) {
-                const inputEl = document.getElementById(field.id);
-                if (inputEl) {
-                    customValues[field.id] = inputEl.value.trim();
+                if (field.type === 'multiselect') {
+                    const checkedBoxes = document.querySelectorAll(`input[name="${field.id}[]"]:checked`);
+                    const selectedValues = Array.from(checkedBoxes).map(cb => cb.value.trim()).filter(v => v);
+                    const joined = selectedValues.join(', ');
+                    if (field.required && !joined) {
+                        alert(`Por favor selecciona al menos una opción para "${field.label}".`);
+                        return;
+                    }
+                    customValues[field.id] = joined;
+                } else {
+                    const inputEl = document.getElementById(field.id);
+                    if (inputEl) {
+                        customValues[field.id] = inputEl.value.trim();
+                    }
                 }
             }
-        });
+        }
     }
 
     const data = {
@@ -1279,15 +1381,17 @@ async function loadPublicGrupos() {
             const miembros = gruposData[grupoName];
             
             const card = document.createElement('div');
-            card.style.background = 'rgba(255,255,255,0.05)';
-            card.style.border = '1px solid rgba(255,255,255,0.15)';
+            card.style.background = '#1e293b';
+            card.style.border = '1.5px solid rgba(255,255,255,0.22)';
             card.style.borderRadius = '1rem';
             card.style.padding = '1.2rem';
+            card.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.4)';
 
             const title = document.createElement('h3');
             title.style.margin = '0 0 0.8rem 0';
             title.style.color = '#4ade80';
-            title.style.fontSize = '1.1rem';
+            title.style.fontSize = '1.15rem';
+            title.style.fontWeight = '700';
             title.textContent = `Grupo: ${grupoName} (${miembros.length})`;
 
             const ul = document.createElement('ul');
@@ -1296,20 +1400,22 @@ async function loadPublicGrupos() {
             ul.style.margin = '0';
             ul.style.display = 'flex';
             ul.style.flexDirection = 'column';
-            ul.style.gap = '0.4rem';
+            ul.style.gap = '0.45rem';
 
             miembros.forEach(m => {
                 const li = document.createElement('li');
-                li.style.fontSize = '0.9rem';
-                li.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-                li.style.paddingBottom = '0.3rem';
+                li.style.fontSize = '0.95rem';
+                li.style.color = '#ffffff';
+                li.style.borderBottom = '1px dashed rgba(255,255,255,0.2)';
+                li.style.paddingBottom = '0.35rem';
 
                 const strong = document.createElement('strong');
+                strong.style.color = '#ffffff';
                 strong.textContent = m.nombreCompleto || '';
                 li.appendChild(strong);
                 li.appendChild(document.createTextNode(' '));
                 const span = document.createElement('span');
-                span.style.cssText = 'opacity:0.6; font-size:0.8rem;';
+                span.style.cssText = 'color: #cbd5e1; font-size: 0.85rem; font-weight: 500;';
                 span.textContent = `(${m.titulo || ''})`;
                 li.appendChild(span);
                 ul.appendChild(li);

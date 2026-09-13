@@ -432,17 +432,34 @@ async function updateStats() {
     const stats = await api<StatsData>(`/api/stats?curso=${encodeURIComponent(getCurso())}&campo=${encodeURIComponent(campo)}&grupo=${encodeURIComponent(grupo)}&fecha=${encodeURIComponent(fecha)}&t=${Date.now()}`);
 
     const fieldSelect = $('stats-field-select') as HTMLSelectElement | null;
-    if (fieldSelect) {
+    if (fieldSelect && Array.isArray(stats.availableFields) && stats.availableFields.length > 0) {
       const current = fieldSelect.value;
-      fieldSelect.innerHTML = '';
-      (stats.availableFields || []).forEach(f => {
-        if (f.id.toLowerCase().includes('no especificado')) return;
-        const opt = document.createElement('option');
-        opt.value = f.id;
-        opt.textContent = f.label;
-        fieldSelect.appendChild(opt);
-      });
+      const existingIds = Array.from(fieldSelect.querySelectorAll('option')).map(o => o.value);
+      const newIds = stats.availableFields.map(f => f.id);
+      const hasOptgroups = fieldSelect.querySelector('optgroup') !== null;
+
+      if (JSON.stringify(existingIds) !== JSON.stringify(newIds) || !hasOptgroups) {
+        fieldSelect.innerHTML = '';
+        const stdGroup = document.createElement('optgroup');
+        stdGroup.label = '📌 Campos Estándar del Sistema';
+        const customGroup = document.createElement('optgroup');
+        customGroup.label = '📚 Preguntas del Docente y Encuestas';
+
+        stats.availableFields.forEach(f => {
+          if (f.id.toLowerCase().includes('no especificado')) return;
+          const opt = document.createElement('option');
+          opt.value = f.id;
+          opt.textContent = f.id.startsWith('custom_') ? `📝 ${f.label}` : f.label;
+          if (f.id.startsWith('custom_')) customGroup.appendChild(opt);
+          else stdGroup.appendChild(opt);
+        });
+
+        if (stdGroup.children.length > 0) fieldSelect.appendChild(stdGroup);
+        if (customGroup.children.length > 0) fieldSelect.appendChild(customGroup);
+      }
+
       if (Array.from(fieldSelect.options).some(o => o.value === current)) fieldSelect.value = current;
+      else if (newIds.length > 0) fieldSelect.value = newIds[0];
     }
 
     const header = $('stats-dynamic-header');
@@ -1548,13 +1565,32 @@ function initAdmin() {
 
   // Config formulario
   $('btn-uncheck-all')?.addEventListener('click', () => {
-    if (!confirm('¿Desmarcar TODOS los campos del formulario? Solo quedará la búsqueda por nombre.')) return;
-    Object.keys(currentFormConfig!.standardFields).forEach(k => { currentFormConfig!.standardFields[k].enabled = false; });
-    (currentFormConfig!.customFields || []).forEach(f => { f.enabled = false; });
+    if (!currentFormConfig) return;
+    Object.keys(currentFormConfig.standardFields).forEach(k => { currentFormConfig!.standardFields[k].enabled = false; });
+    (currentFormConfig.customFields || []).forEach(f => { f.enabled = false; });
     renderStandardFields();
     renderCustomFields();
-    saveCurrentFormConfig(false);
   });
+  $('btn-check-standard')?.addEventListener('click', () => {
+    if (!currentFormConfig) return;
+    Object.keys(currentFormConfig.standardFields).forEach(k => { currentFormConfig!.standardFields[k].enabled = true; });
+    renderStandardFields();
+  });
+  $('btn-check-custom')?.addEventListener('click', () => {
+    if (!currentFormConfig) return;
+    (currentFormConfig.customFields || []).forEach(f => { f.enabled = true; });
+    renderCustomFields();
+  });
+  $('btn-check-latest')?.addEventListener('click', () => {
+    if (!currentFormConfig) return;
+    const cList = currentFormConfig.customFields || [];
+    if (cList.length > 0) {
+      const start = Math.max(0, cList.length - 2);
+      for (let i = start; i < cList.length; i++) cList[i].enabled = true;
+      renderCustomFields();
+    }
+  });
+  $('btn-save-config-top')?.addEventListener('click', () => saveCurrentFormConfig(true));
   $('btn-add-custom-field')?.addEventListener('click', () => {
     const label = ($('new-field-label') as HTMLInputElement | null)?.value?.trim();
     const type = ($('new-field-type') as HTMLSelectElement | null)?.value || 'text';

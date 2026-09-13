@@ -2,7 +2,7 @@
 
 Plataforma **portátil, autónoma y de cero configuración** para gestionar asistencia, registros iniciales de alumnos, verificación interactiva de datos e identificación visual en aulas presenciales o virtuales. Diseñada para funcionar directamente desde una memoria USB en la PC del aula, sin requerir instalación de software en los dispositivos de los estudiantes ni en el equipo docente.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-4.4.0-6366f1.svg)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-4.8.2-6366f1.svg)
 ![Node](https://img.shields.io/badge/node->=22.0.0-green.svg)
 ![Licencia](https://img.shields.io/badge/licencia-Educativa-blue.svg)
 
@@ -13,6 +13,9 @@ Plataforma **portátil, autónoma y de cero configuración** para gestionar asis
 ## ✨ Características Principales
 
 ### 📱 Experiencia del Alumno (Móvil / Web)
+- **Solución Definitiva de Alto Contraste y Fondos Sólidos (v4.8.1):** Blindaje total contra fondos claros en móviles y navegadores: fondo general opaco `#090d16`, tarjetas en `#0f172a`, controles (inputs, selects, multiselect) en negro mate azabache `#030712` con bordes nítidos `#475569` y texto blanco puro `#ffffff` (ratio de contraste 21:1, superando WCAG AAA). Soporte para `<meta name="color-scheme" content="dark">`, cache-buster dinámico y blindaje de `-webkit-autofill`.
+- **Reubicación Ergonómica de Grupos (v4.8.0):** El acceso para consultar integrantes y grupos del curso ahora se sitúa de forma limpia y accesible directamente bajo el título en la cabecera, liberando el flujo inferior de registro.
+- **Campos de Selección Múltiple / Casillas (v4.7.0):** Soporte completo para preguntas de múltiples respuestas (ej. plataformas educativas utilizadas, herramientas, intereses) con casillas interactivas, estados animados y recolección unificada.
 - **Registro y Presente vía QR:** Acceso instantáneo mediante escaneo de código QR sin instalar aplicaciones.
 - **Ficha Dinámica y Verificación Reactiva (v4.3.0):** Los estudiantes pueden consultar y actualizar sus datos en tiempo real sin pantallas de bloqueo ciego.
 - **Badges de Verificación por Campo:**
@@ -24,8 +27,15 @@ Plataforma **portátil, autónoma y de cero configuración** para gestionar asis
 - **Auto-presente y Llegadas Tarde:** Detección de dispositivos vinculados y botón de presente tardío si el alumno llega después del pase de lista.
 
 ### 👨‍🏫 Panel de Control Docente
+- **📊 Estadísticas Desglosadas de Selección Múltiple (v4.7.0):** El motor analítico computa frecuencias individuales por cada opción seleccionada en preguntas multiselect, permitiendo porcentajes reales sobre base encuestada y gráficos precisos.
+- **📊 Estadísticas Dinámicas de Campos Personalizados y Encuestas (v4.6.0):** Selector categorizado (`<optgroup>`) que incluye todas las preguntas del docente, relevamientos y columnas de la planilla Excel con métricas en tiempo real, gráficos interactivos (barras, torta, dona, radar) y tablas de frecuencias.
+- **Barra de Acciones Rápidas y Guardado Superior de Formulario (v4.5.0):**
+  - Botones masivos de selección rápida: `🧹 Desmarcar Todo`, `👤 Marcar Estándar`, `📚 Marcar Personalizados` y `⭐ Marcar Últimos Campos`.
+  - Botón de Guardado Superior (`💾 Guardar Configuración`) destacado en verde esmeralda y sincronizado.
+  - Píldora de estado reactivo y auto-guardado silencioso al cambiar de pestaña.
 - **Gestión Visual de Nómina (v4.2.0):** Visualización en formato cuadrícula (*grid*) con fotos reales o formato tabla tradicional, nombres completos sin recortes y buscador en vivo.
 - **Pase de Asistencia Rápido:** Estados unificados: *Presente*, *Tarde* y *Ausente*, con resumen cuantitativo y cálculo de porcentajes.
+- **📊 Estadísticas Dinámicas de Campos Personalizados (v4.4.1):** Visualización gráfica (barras, torta, dona, radar) y tabular de las respuestas a consignas, encuestas y preguntas agregadas dinámicamente por el docente al formulario.
 - **⏰ Reloj de Tardanza en Vivo:** Control de tiempo transcurrido desde el inicio de la clase con alertas automáticas.
 - **Proyección de Código QR:** Generación de código QR con resolución nítida y detección automática de la IP física de la red Wi-Fi/LAN del aula.
 - **Formularios Configurables:** Posibilidad de activar, desactivar o agregar campos personalizados (consignas, preguntas de clase, encuestas) desde `form-config.json`.

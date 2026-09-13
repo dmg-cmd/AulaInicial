@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#090d16">
     <title>Registro de Alumnos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +22,11 @@
             <div class="header-text">
                 <h1>Portal de Registro</h1>
                 <p id="course-title">Cargando curso activo...</p>
+                <div class="header-grupos-wrapper">
+                    <button type="button" id="btn-public-grupos" class="btn-header-grupos" title="Ver integrantes y grupos de este curso">
+                        👥 Ver Grupos del Curso y Miembros
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -168,12 +175,6 @@
                 <div class="auto-dispositivo">
                     🔒 Dispositivo vinculado de forma segura por cookie.
                 </div>
-            </section>
-
-            <section class="card glass btn-grupos-section">
-                <button id="btn-public-grupos" class="btn-primary btn-grupos">
-                    👥 Ver Grupos del Curso y Miembros
-                </button>
             </section>
         </main>
     </div>

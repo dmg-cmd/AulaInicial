@@ -89,21 +89,75 @@ function registerAttendanceRoutes(app) {
                 rowsToAnalyze = mainRows;
             }
 
+            const cfg = state.formConfig || (typeof require('../config/formConfig').loadFormConfig === 'function' ? require('../config/formConfig').loadFormConfig() : null);
+            const standardFields = (cfg && cfg.standardFields) || {};
+            const customFieldsList = (cfg && Array.isArray(cfg.customFields)) ? cfg.customFields : [];
+
             const fieldsMap = new Map();
-            fieldsMap.set('titulo', 'Título Profesional / Especialidad');
-            fieldsMap.set('tecnologia', 'Relación con la Tecnología');
-            fieldsMap.set('grupo', 'Grupo');
-            fieldsMap.set('asistencia', 'Asistencia (Presente / Tarde / Ausente)');
-            fieldsMap.set('dni', 'DNI / ID');
-            fieldsMap.set('email', 'Email Privado');
-            fieldsMap.set('telefono', 'Teléfono');
-            if (formConfig && Array.isArray(state.formConfig.customFields)) {
-                state.formConfig.customFields.forEach(f => {
-                    const keyId = (f.label || f.name || f.id || '').toString().toLowerCase().trim();
-                    if (keyId) fieldsMap.set(keyId, f.label || f.name || keyId);
+            // Campos estándar siempre disponibles para consultas históricas y generales
+            fieldsMap.set('titulo', { label: standardFields.titulo?.label || 'Título Profesional / Especialidad', group: 'standard' });
+            fieldsMap.set('tecnologia', { label: standardFields.tecnologia?.label || 'Relación con la Tecnología', group: 'standard' });
+            fieldsMap.set('grupo', { label: standardFields.grupo?.label || 'Grupo', group: 'standard' });
+            fieldsMap.set('asistencia', { label: 'Asistencia (Presente / Tarde / Ausente)', group: 'standard' });
+            fieldsMap.set('dni', { label: standardFields.dni?.label || 'DNI / ID', group: 'standard' });
+            fieldsMap.set('email', { label: standardFields.email?.label || 'Email Privado', group: 'standard' });
+            fieldsMap.set('telefono', { label: standardFields.telefono?.label || 'Teléfono', group: 'standard' });
+
+            // Campos y preguntas personalizadas configuradas por el docente (siempre disponibles para analizar respuestas)
+            customFieldsList.forEach(f => {
+                if (f) {
+                    const keyId = (f.id || f.name || f.label || '').toString().trim();
+                    const label = (f.label || f.name || f.id || keyId).toString().trim();
+                    if (keyId) fieldsMap.set(keyId, { label, group: 'custom' });
+                }
+            });
+
+            // Detección inteligente de columnas adicionales con respuestas presentes en la planilla Excel
+            const systemColsLower = new Set([
+                'last name', 'first name', 'email address', 'total clases', 'presentes',
+                'ausentes', 'tardes', '% presentismo', 'borrado', 'fecha registro',
+                'hora registro', 'dispositivo', 'foto', 'foto real', 'foto perfil',
+                'pin', 'token', 'user-agent', 'dni', 'id', 'alumno', 'nombre',
+                'titulo', 'tecnologia', 'grupo', 'asistencia', 'estado', 'email privado',
+                'email', 'telefono'
+            ]);
+
+            const allExcelCols = new Set();
+            rowsToAnalyze.forEach(r => {
+                if (r && typeof r === 'object') {
+                    Object.keys(r).forEach(k => allExcelCols.add(k));
+                }
+            });
+            if (mainRows && mainRows.length > 0) {
+                mainRows.forEach(r => {
+                    if (r && typeof r === 'object') {
+                        Object.keys(r).forEach(k => allExcelCols.add(k));
+                    }
                 });
             }
-            const availableFields = Array.from(fieldsMap.entries()).map(([id, label]) => ({ id, label }));
+
+            allExcelCols.forEach(col => {
+                const colTrim = col.toString().trim();
+                const colLower = colTrim.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                if (!colTrim || systemColsLower.has(colLower)) return;
+
+                // Verificar si ya fue registrado por un customField o estándar
+                const alreadyCovered = Array.from(fieldsMap.entries()).some(([k, val]) => {
+                    const kNorm = k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const labelNorm = (val?.label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    return kNorm === colLower || labelNorm === colLower;
+                });
+
+                if (!alreadyCovered) {
+                    fieldsMap.set(colTrim, { label: colTrim, group: 'excel' });
+                }
+            });
+
+            const availableFields = Array.from(fieldsMap.entries()).map(([id, info]) => ({
+                id,
+                label: typeof info === 'object' && info ? info.label : String(info),
+                group: typeof info === 'object' && info ? (info.group || 'standard') : 'standard'
+            }));
 
             const cleanFilterGroup = normalizeGrupoStr(filterGroup);
             const filteredRows = rowsToAnalyze.filter(row => {
@@ -112,6 +166,22 @@ function registerAttendanceRoutes(app) {
                 const rowGrupo = normalizeGrupoStr(row['Grupo'] || row['grupo'] || '');
                 return rowGrupo === cleanFilterGroup;
             });
+
+            const matchedCustomField = customFieldsList.find(f => {
+                if (!f) return false;
+                const fid = (f.id || '').toString().trim().toLowerCase();
+                const flabel = (f.label || '').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                const fname = (f.name || '').toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                const tNorm = targetField.toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                return fid === targetField.toLowerCase().trim() || flabel === tNorm || fname === tNorm;
+            });
+
+            const candidateKeys = [targetField];
+            if (matchedCustomField) {
+                if (matchedCustomField.label && !candidateKeys.includes(matchedCustomField.label)) candidateKeys.push(matchedCustomField.label);
+                if (matchedCustomField.name && !candidateKeys.includes(matchedCustomField.name)) candidateKeys.push(matchedCustomField.name);
+                if (matchedCustomField.id && !candidateKeys.includes(matchedCustomField.id)) candidateKeys.push(matchedCustomField.id);
+            }
 
             const dynamicCounts = {};
             let validAnswersCount = 0;
@@ -137,9 +207,23 @@ function registerAttendanceRoutes(app) {
                 else if (targetClean === 'telefono') rawValue = row['Teléfono'] || row['Telefono'];
 
                 if (rawValue === null || rawValue === undefined || rawValue.toString().trim() === '') {
+                    for (const cand of candidateKeys) {
+                        if (row[cand] !== null && row[cand] !== undefined && row[cand].toString().trim() !== '') {
+                            rawValue = row[cand];
+                            break;
+                        }
+                    }
+                }
+
+                if (rawValue === null || rawValue === undefined || rawValue.toString().trim() === '') {
+                    const searchTerms = [targetClean];
+                    if (matchedCustomField) {
+                        if (matchedCustomField.label) searchTerms.push(matchedCustomField.label.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim());
+                        if (matchedCustomField.name) searchTerms.push(matchedCustomField.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim());
+                    }
                     for (const key of Object.keys(row)) {
                         const kClean = key.toString().trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-                        if (kClean === targetClean || kClean.includes(targetClean) || targetClean.includes(kClean)) {
+                        if (searchTerms.some(st => st && (kClean === st || kClean.includes(st) || st.includes(kClean)))) {
                             rawValue = row[key];
                             if (rawValue !== null && rawValue !== undefined && rawValue.toString().trim() !== '') break;
                         }
@@ -147,17 +231,33 @@ function registerAttendanceRoutes(app) {
                 }
 
                 if (rawValue !== null && rawValue !== undefined && rawValue.toString().trim() !== '') {
-                    let valStr = rawValue.toString().trim();
-                    if (targetClean === 'titulo') valStr = normalizeTitle(valStr);
-                    else if (targetClean === 'tecnologia') {
-                        const u = valStr.toUpperCase();
-                        if (u.includes('AVANZADO')) valStr = 'AVANZADO';
-                        else if (u.includes('MODERADO')) valStr = 'MODERADO';
-                        else if (u.includes('TEMEROSO')) valStr = 'TEMEROSO';
-                        else valStr = u;
-                    } else valStr = valStr.toUpperCase();
-                    dynamicCounts[valStr] = (dynamicCounts[valStr] || 0) + 1;
                     validAnswersCount++;
+                    const rawStr = rawValue.toString().trim();
+                    const isMulti = matchedCustomField && matchedCustomField.type === 'multiselect';
+
+                    if (isMulti) {
+                        const parts = rawStr.split(/[,;]/).map(p => p.trim()).filter(p => p);
+                        if (parts.length === 0) {
+                            const u = rawStr.toUpperCase();
+                            dynamicCounts[u] = (dynamicCounts[u] || 0) + 1;
+                        } else {
+                            parts.forEach(part => {
+                                const pUpper = part.toUpperCase();
+                                dynamicCounts[pUpper] = (dynamicCounts[pUpper] || 0) + 1;
+                            });
+                        }
+                    } else {
+                        let valStr = rawStr;
+                        if (targetClean === 'titulo') valStr = normalizeTitle(valStr);
+                        else if (targetClean === 'tecnologia') {
+                            const u = valStr.toUpperCase();
+                            if (u.includes('AVANZADO')) valStr = 'AVANZADO';
+                            else if (u.includes('MODERADO')) valStr = 'MODERADO';
+                            else if (u.includes('TEMEROSO')) valStr = 'TEMEROSO';
+                            else valStr = u;
+                        } else valStr = valStr.toUpperCase();
+                        dynamicCounts[valStr] = (dynamicCounts[valStr] || 0) + 1;
+                    }
                 }
             });
 

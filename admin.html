@@ -271,17 +271,38 @@
                 <section class="card glass">
                     <div class="mig39">
                         <div>
-                            <h2 class="mig40">⚙️ Configuración del Formulario para Alumnos</h2>
-                            <p class="mig26">
+                            <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                                <h2 class="mig40">⚙️ Configuración del Formulario para Alumnos</h2>
+                                <span id="form-config-status-badge" class="form-config-status-pill saved">✅ Configuración guardada</span>
+                            </div>
+                            <p class="mig26" style="margin-top: 0.35rem;">
                                 Elige los datos que se le solicitarán al estudiante cuando escanee el código QR y clasifícalos como Personales o de Clase.
                             </p>
                         </div>
-                        <div class="mig41">
-                            <button id="btn-uncheck-all" class="btn-secondary mig42" title="Desmarca todas las casillas activas sin borrar los campos para volver a usarlos luego">
-                                🧹 Desmarcar Todas las Tildes
+                    </div>
+
+                    <!-- Barra de Acciones Rápidas y Guardado Superior -->
+                    <div class="form-actions-toolbar">
+                        <div class="form-actions-left">
+                            <button id="btn-uncheck-all" class="btn-action-base btn-action-uncheck" type="button" title="Desmarca todas las casillas activas sin borrar los campos">
+                                🧹 Desmarcar Todo
                             </button>
-                            <button id="btn-student-view" class="btn-secondary mig43">
-                                👤 Probar Vista Alumno (Demo)
+                            <button id="btn-check-standard" class="btn-action-base btn-action-standard" type="button" title="Marca todas las casillas de los campos estándar personales">
+                                👤 Marcar Estándar
+                            </button>
+                            <button id="btn-check-custom" class="btn-action-base btn-action-custom" type="button" title="Marca todas las preguntas personalizadas de clase">
+                                📚 Marcar Personalizados
+                            </button>
+                            <button id="btn-check-latest" class="btn-action-base btn-action-latest" type="button" title="Marca los últimos campos agregados al formulario">
+                                ⭐ Marcar Últimos
+                            </button>
+                            <button id="btn-student-view" class="btn-action-base btn-action-demo" type="button" title="Abre una ventana simulada de la vista del alumno para probar el formulario">
+                                👁️ Probar Vista Alumno (Demo)
+                            </button>
+                        </div>
+                        <div class="form-actions-right">
+                            <button id="btn-save-config-top" class="btn-action-base btn-action-save" type="button" title="Guardar la configuración de campos activa en el servidor">
+                                💾 Guardar Configuración
                             </button>
                         </div>
                     </div>
@@ -308,7 +329,8 @@
                                 <select id="new-field-type" class="mig53">
                                     <option value="text">Texto Plano</option>
                                     <option value="number">Número</option>
-                                    <option value="select">Desplegable</option>
+                                    <option value="select">Desplegable (Opción única)</option>
+                                    <option value="multiselect">☑️ Varias Opciones (Casillas de verificación)</option>
                                 </select>
                             </div>
                             <div class="mig55">
@@ -520,13 +542,15 @@
                                     📌 Campo a Analizar:
                                 </label>
                                 <select id="stats-field-select" class="mig103">
-                                    <option value="titulo">Título Profesional / Especialidad</option>
-                                    <option value="tecnologia">Relación con la Tecnología</option>
-                                    <option value="grupo">Grupo de Trabajo</option>
-                                    <option value="asistencia">Asistencia (Presente / Tarde / Ausente)</option>
-                                    <option value="dni">DNI / ID</option>
-                                    <option value="email">Email Privado</option>
-                                    <option value="telefono">Teléfono</option>
+                                    <optgroup label="📌 Campos Estándar del Sistema">
+                                        <option value="titulo">Título Profesional / Especialidad</option>
+                                        <option value="tecnologia">Relación con la Tecnología</option>
+                                        <option value="grupo">Grupo de Trabajo</option>
+                                        <option value="asistencia">Asistencia (Presente / Tarde / Ausente)</option>
+                                        <option value="dni">DNI / ID</option>
+                                        <option value="email">Email Privado</option>
+                                        <option value="telefono">Teléfono</option>
+                                    </optgroup>
                                 </select>
                             </div>
 

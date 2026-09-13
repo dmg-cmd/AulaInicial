@@ -18,4 +18,7 @@ const state = {
     sessions: new Map()             // token de sesión docente -> expiración (ms)
 };
 
-module.exports = { state };
+module.exports = {
+    state,
+    registeredIPs: state.registeredIPs
+};

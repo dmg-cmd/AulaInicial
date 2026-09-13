@@ -190,13 +190,13 @@ function registerRegistrationRoutes(app) {
                 }
                 const alumno = data[alumnoId];
 
-                // Actualizar campos estándar activos
-                if (state.formConfig.standardFields.email?.enabled !== false) alumno['Email Privado'] = (email || '').trim();
-                if (state.formConfig.standardFields.titulo?.enabled !== false) alumno['Título'] = (titulo || '').trim();
-                if (state.formConfig.standardFields.tecnologia?.enabled !== false) alumno['Tecnología'] = (req.body.tecnologia || 'NO ESPECIFICADO').trim();
-                if (state.formConfig.standardFields.telefono?.enabled !== false) alumno['Teléfono'] = (telefono || '').trim();
-                if (state.formConfig.standardFields.dni?.enabled !== false) alumno['DNI'] = (dni || '').trim();
-                if (state.formConfig.standardFields.grupo?.enabled !== false) alumno['Grupo'] = (req.body.grupo || '').trim().toUpperCase();
+                // Actualizar campos estándar activos con coerción segura a string
+                if (state.formConfig.standardFields.email?.enabled !== false) alumno['Email Privado'] = String(email || '').trim();
+                if (state.formConfig.standardFields.titulo?.enabled !== false) alumno['Título'] = String(titulo || '').trim();
+                if (state.formConfig.standardFields.tecnologia?.enabled !== false) alumno['Tecnología'] = String(req.body.tecnologia || 'NO ESPECIFICADO').trim();
+                if (state.formConfig.standardFields.telefono?.enabled !== false) alumno['Teléfono'] = String(telefono || '').trim();
+                if (state.formConfig.standardFields.dni?.enabled !== false) alumno['DNI'] = String(dni || '').trim();
+                if (state.formConfig.standardFields.grupo?.enabled !== false) alumno['Grupo'] = String(req.body.grupo || '').trim().toUpperCase();
                 alumno['Fecha Registro'] = alumno['Fecha Registro'] || new Date().toLocaleString('es-AR');
 
                 // Actualizar campos personalizados de clase
@@ -204,13 +204,13 @@ function registerRegistrationRoutes(app) {
                     (state.formConfig.customFields || []).forEach(field => {
                         if (field.enabled !== false && customValues[field.id] !== undefined) {
                             const keyName = field.label || field.name;
-                            alumno[keyName] = customValues[field.id];
+                            alumno[keyName] = String(customValues[field.id] || '').trim();
                         }
                     });
                 }
 
                 const alumnoName = obtenerNombreAlumno(alumno);
-                if (req.body.fotoData) saveStudentFoto(alumnoName, dni || alumno['DNI'], req.body.fotoData);
+                if (req.body.fotoData) saveStudentFoto(alumnoName, String(dni || alumno['DNI'] || ''), req.body.fotoData);
 
                 // --- REGLA ESTRICTA DE ASISTENCIA: BLOQUEO DE DOBLE PRESENTE DIARIO ---
                 const hoy = new Date();
@@ -234,9 +234,9 @@ function registerRegistrationRoutes(app) {
                     horaRegistroAsistencia = (dateData[idxInDate]['Hora Registro'] || dateData[idxInDate]['Hora'] || horaActual).toString().trim();
 
                     // Actualizar DNI o Grupo en la hoja del día por coherencia
-                    dateData[idxInDate]['DNI'] = (dni || alumno['DNI'] || dateData[idxInDate]['DNI'] || 'SIN DNI').trim();
+                    dateData[idxInDate]['DNI'] = String(dni || alumno['DNI'] || dateData[idxInDate]['DNI'] || 'SIN DNI').trim();
                     if (req.body.grupo || alumno['Grupo']) {
-                        dateData[idxInDate]['Grupo'] = (req.body.grupo || alumno['Grupo']).toString().toUpperCase().trim();
+                        dateData[idxInDate]['Grupo'] = String(req.body.grupo || alumno['Grupo']).toUpperCase().trim();
                     }
                     const dateSheet = xlsx.utils.json_to_sheet(dateData);
                     workbook.Sheets[dateSheetName] = dateSheet;
@@ -251,10 +251,10 @@ function registerRegistrationRoutes(app) {
                     horaRegistroAsistencia = horaActual;
 
                     const filaFechaObj = {
-                        'DNI': (dni || alumno['DNI'] || 'SIN DNI').trim(),
+                        'DNI': String(dni || alumno['DNI'] || 'SIN DNI').trim(),
                         'Alumno': alumnoName,
                         'Asistencia': estadoAsistencia,
-                        'Grupo': (alumno['Grupo'] || req.body.grupo || 'SIN GRUPO').toString().toUpperCase().trim(),
+                        'Grupo': String(alumno['Grupo'] || req.body.grupo || 'SIN GRUPO').toUpperCase().trim(),
                         'Hora Registro': horaActual
                     };
                     dateData.push(filaFechaObj);
@@ -270,7 +270,11 @@ function registerRegistrationRoutes(app) {
                 const writeErr = writeWorkbookSafely(workbook, filePath);
                 if (writeErr) return res.status(500).json({ error: writeErr.error });
 
-                registeredIPs.add(clientIP);
+                if (state.registeredIPs && typeof state.registeredIPs.add === 'function') {
+                    state.registeredIPs.add(clientIP);
+                } else if (registeredIPs && typeof registeredIPs.add === 'function') {
+                    registeredIPs.add(clientIP);
+                }
                 const token = generateStudentToken(alumnoName, alumnoId);
                 const fotoUrl = findFotoForStudent(alumnoName, dni || alumno['DNI']);
 
@@ -285,7 +289,7 @@ function registerRegistrationRoutes(app) {
                 });
             } catch (error) {
                 console.error('Error al guardar en Excel:', error);
-                res.status(500).json({ error: 'Error interno al guardar los datos en el Excel.' });
+                res.status(500).json({ error: error.message ? `Error al guardar en Excel: ${error.message}` : 'Error interno al guardar los datos en el Excel.' });
             }
         }).catch(() => {
             if (!res.headersSent) return res.status(500).json({ error: 'Error interno al procesar el registro.' });
@@ -508,12 +512,12 @@ function registerRegistrationRoutes(app) {
                     (state.formConfig.customFields || []).forEach(field => {
                         if (field.enabled !== false && customValues[field.id] !== undefined) {
                             const keyName = field.label || field.name;
-                            alumno[keyName] = customValues[field.id];
+                            alumno[keyName] = String(customValues[field.id] || '').trim();
                         }
                     });
                 }
                 const alumnoName = obtenerNombreAlumno(alumno);
-                if (fotoData) saveStudentFoto(alumnoName, dni || alumno['DNI'], fotoData);
+                if (fotoData) saveStudentFoto(alumnoName, String(dni || alumno['DNI'] || ''), fotoData);
 
                 consolidarPresentismo(workbook, data);
                 workbook.Sheets[sheetName] = xlsx.utils.json_to_sheet(data);
@@ -521,11 +525,11 @@ function registerRegistrationRoutes(app) {
                 if (writeErr) return res.status(500).json({ error: writeErr.error });
 
                 console.log(`💾 Perfil actualizado por el alumno: ${alumnoName} en [${path.basename(curso)}].`);
-                const newFotoUrl = fotoData ? findFotoForStudent(alumnoName, dni || alumno['DNI']) : null;
+                const newFotoUrl = fotoData ? findFotoForStudent(alumnoName, String(dni || alumno['DNI'] || '')) : null;
                 res.json({ success: true, fotoUrl: newFotoUrl });
             } catch (error) {
                 console.error('Error al guardar perfil del alumno:', error);
-                res.status(500).json({ error: 'Error interno al guardar los datos del alumno.' });
+                res.status(500).json({ error: error.message ? `Error al guardar datos del alumno: ${error.message}` : 'Error interno al guardar los datos del alumno.' });
             }
         }).catch(() => {
             if (!res.headersSent) res.status(500).json({ error: 'Error interno al actualizar el perfil.' });
@@ -564,7 +568,7 @@ function registerRegistrationRoutes(app) {
                 if (!alumnoRow || targetIndex < 0) return res.status(404).json({ error: 'Alumno no encontrado en el curso activo.' });
 
                 const displayName = obtenerNombreAlumno(alumnoRow);
-                const studentDni = alumnoRow['DNI'] || '';
+                const studentDni = String(alumnoRow['DNI'] || '').trim();
                 const hoy = new Date();
                 const dateSheetName = `${hoy.getDate().toString().padStart(2, '0')}-${(hoy.getMonth() + 1).toString().padStart(2, '0')}-${hoy.getFullYear()}`;
                 const horaActual = hoy.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -578,7 +582,7 @@ function registerRegistrationRoutes(app) {
                     'DNI': studentDni || 'SIN DNI',
                     'Alumno': displayName,
                     'Asistencia': 'PRESENTE TARDÍO',
-                    'Grupo': (alumnoRow['Grupo'] || 'SIN GRUPO').toString().toUpperCase().trim(),
+                    'Grupo': String(alumnoRow['Grupo'] || 'SIN GRUPO').toUpperCase().trim(),
                     'Hora Registro': horaActual
                 };
                 if (idxInDate >= 0) dateData[idxInDate] = filaFechaObj;
@@ -595,7 +599,7 @@ function registerRegistrationRoutes(app) {
                 res.json({ success: true, estado: 'PRESENTE TARDÍO', hora: horaActual, fotoUrl });
             } catch (error) {
                 console.error('Error al registrar presente tardío:', error);
-                res.status(500).json({ error: 'Error interno al registrar el presente tardío.' });
+                res.status(500).json({ error: error.message ? `Error al registrar presente tardío: ${error.message}` : 'Error interno al registrar el presente tardío.' });
             }
         }).catch(() => {
             if (!res.headersSent) res.status(500).json({ error: 'Error interno al procesar el presente tardío.' });
@@ -611,7 +615,11 @@ function registerRegistrationRoutes(app) {
 
     app.get('/api/check-registration', (req, res) => {
         const clientIP = normalizeClientIP(req.ip || req.connection.remoteAddress);
-        res.json({ registered: registeredIPs.has(clientIP) });
+        const isRegistered = Boolean(
+            (state.registeredIPs && typeof state.registeredIPs.has === 'function' && state.registeredIPs.has(clientIP)) ||
+            (registeredIPs && typeof registeredIPs.has === 'function' && registeredIPs.has(clientIP))
+        );
+        res.json({ registered: isRegistered });
     });
 }
 

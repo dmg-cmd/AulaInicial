@@ -76,10 +76,10 @@
   },
   "customFields": [
     {
-      "id": "custom_1787195952641",
-      "label": "Cansulta de clase",
-      "name": "Cansulta de clase",
-      "type": "select",
+      "id": "custom_1788809777553",
+      "label": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
+      "name": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
+      "type": "multiselect",
       "category": "clase",
       "enabled": true,
       "required": false,

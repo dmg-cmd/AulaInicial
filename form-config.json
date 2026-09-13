@@ -2,14 +2,14 @@
   "standardFields": {
     "email": {
       "label": "Email Privado",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
     },
     "dni": {
       "label": "DNI / ID",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
@@ -55,21 +55,21 @@
     },
     "grupo": {
       "label": "Grupo (Una sola palabra)",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
     },
     "telefono": {
       "label": "Teléfono (Opcional)",
-      "enabled": true,
+      "enabled": false,
       "required": false,
       "category": "personal",
       "options": []
     },
     "foto": {
       "label": "Foto Real del Rostro (Identificación Visual)",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
@@ -98,7 +98,7 @@
       "type": "text",
       "category": "personal",
       "options": [],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -113,7 +113,7 @@
         "Cómoda / Avanzada: Me gusta probar aplicaciones nuevas y suelo resolver problemas técnicos sin dificultad",
         "Entusiasta: Investigo constantemente y me gusta incorporar novedades digitales en mi trabajo."
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -128,14 +128,14 @@
         "Cursé diplomaturas carreras o posgrados completos a distancia",
         "Casi no he tenido experiencia formal con la modalidad a distancia."
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
       "id": "custom_1788809777553",
       "label": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
       "name": "¿Qué plataformas educativas has utilizado alguna vez (como alumno o docente)?",
-      "type": "select",
+      "type": "multiselect",
       "category": "clase",
       "options": [
         "Google Classroom",
@@ -144,7 +144,7 @@
         "Campus virtual propio de universidad o empresa",
         "Ninguna de las anteriores"
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -159,7 +159,7 @@
         "La sobrecarga docente: El tiempo que insume preparar materiales y responder consultas",
         "La brecha técnica: La conectividad inestable y la dificultad con las herramientas"
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     }
   ],

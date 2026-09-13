@@ -209,6 +209,107 @@ async function consultarAsistenciaHistorica(targetFecha = '') {
     }
 }
 
+function poblarSelectorCamposEstadisticas(availableFields) {
+    const fieldSel = document.getElementById('stats-field-select');
+    if (!fieldSel) return;
+    if (!Array.isArray(availableFields) || availableFields.length === 0) return;
+
+    const currentVal = fieldSel.value;
+    const existingIds = Array.from(fieldSel.querySelectorAll('option')).map(o => o.value);
+    const newIds = availableFields.map(f => f.id);
+    const hasOptgroups = fieldSel.querySelector('optgroup') !== null;
+
+    // Si ya tiene optgroup y la lista de IDs es idéntica, solo preservar el valor
+    if (JSON.stringify(existingIds) === JSON.stringify(newIds) && hasOptgroups) {
+        if (currentVal && newIds.includes(currentVal)) {
+            fieldSel.value = currentVal;
+        }
+        return;
+    }
+
+    fieldSel.innerHTML = '';
+
+    const standardFields = availableFields.filter(f => !f.group || f.group === 'standard');
+    const customFields = availableFields.filter(f => f.group === 'custom');
+    const excelFields = availableFields.filter(f => f.group === 'excel');
+
+    if (standardFields.length > 0) {
+        const groupStd = document.createElement('optgroup');
+        groupStd.label = '📌 Campos Estándar del Sistema';
+        standardFields.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.label;
+            groupStd.appendChild(opt);
+        });
+        fieldSel.appendChild(groupStd);
+    }
+
+    if (customFields.length > 0) {
+        const groupCust = document.createElement('optgroup');
+        groupCust.label = '📚 Preguntas del Docente y Encuestas';
+        customFields.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `📝 ${f.label}`;
+            opt.title = f.label;
+            groupCust.appendChild(opt);
+        });
+        fieldSel.appendChild(groupCust);
+    }
+
+    if (excelFields.length > 0) {
+        const groupExc = document.createElement('optgroup');
+        groupExc.label = '📊 Otras Columnas del Curso (Excel)';
+        excelFields.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `📊 ${f.label}`;
+            opt.title = f.label;
+            groupExc.appendChild(opt);
+        });
+        fieldSel.appendChild(groupExc);
+    }
+
+    if (currentVal && newIds.includes(currentVal)) {
+        fieldSel.value = currentVal;
+    } else if (newIds.length > 0) {
+        fieldSel.value = newIds[0];
+    }
+}
+
+async function precargarCamposEstadisticasDesdeConfig() {
+    try {
+        const res = await fetch(`/api/form-config?t=${Date.now()}`);
+        if (!res.ok) return;
+        const cfg = await res.json();
+        if (!cfg) return;
+
+        const fields = [
+            { id: 'titulo', label: cfg.standardFields?.titulo?.label || 'Título Profesional / Especialidad', group: 'standard' },
+            { id: 'tecnologia', label: cfg.standardFields?.tecnologia?.label || 'Relación con la Tecnología', group: 'standard' },
+            { id: 'grupo', label: cfg.standardFields?.grupo?.label || 'Grupo', group: 'standard' },
+            { id: 'asistencia', label: 'Asistencia (Presente / Tarde / Ausente)', group: 'standard' },
+            { id: 'dni', label: cfg.standardFields?.dni?.label || 'DNI / ID', group: 'standard' },
+            { id: 'email', label: cfg.standardFields?.email?.label || 'Email Privado', group: 'standard' },
+            { id: 'telefono', label: cfg.standardFields?.telefono?.label || 'Teléfono', group: 'standard' }
+        ];
+
+        if (Array.isArray(cfg.customFields)) {
+            cfg.customFields.forEach(f => {
+                if (f) {
+                    const id = (f.id || f.name || f.label || '').trim();
+                    const label = (f.label || f.name || id).trim();
+                    if (id) fields.push({ id, label, group: 'custom' });
+                }
+            });
+        }
+        poblarSelectorCamposEstadisticas(fields);
+    } catch (e) {
+        console.error('Error precargando campos de estadísticas desde configuración:', e);
+    }
+}
+
 async function updateStats() {
     try {
         // Siempre releer del DOM en el momento de ejecución
@@ -255,24 +356,16 @@ async function updateStats() {
         }
         const statsRes = await res.json();
 
-        // Actualizar las opciones del selector de campo si cambiaron
+        // Actualizar las opciones del selector de campo con soporte agrupado para campos personalizados y Excel
         if (fieldSel && Array.isArray(statsRes.availableFields) && statsRes.availableFields.length > 0) {
             const currentVal = fieldSel.value;
-            const newIds = statsRes.availableFields.map(f => f.id);
-            const existingIds = Array.from(fieldSel.options).map(o => o.value);
-            if (JSON.stringify(existingIds) !== JSON.stringify(newIds)) {
-                fieldSel.innerHTML = '';
-                statsRes.availableFields.forEach(f => {
-                    const opt = document.createElement('option');
-                    opt.value = f.id;
-                    opt.textContent = f.label;
-                    fieldSel.appendChild(opt);
-                });
-            }
-            if (currentVal && newIds.includes(currentVal)) {
+            poblarSelectorCamposEstadisticas(statsRes.availableFields);
+            if (currentVal && statsRes.availableFields.some(f => f.id === currentVal)) {
                 fieldSel.value = currentVal;
-            } else if (newIds.length > 0) {
-                fieldSel.value = newIds[0];
+            } else if (statsRes.availableFields.length > 0 && fieldSel.value !== statsRes.availableFields[0].id) {
+                fieldSel.value = statsRes.availableFields[0].id;
+                updateStats();
+                return;
             }
         }
 
@@ -506,11 +599,22 @@ let currentFormConfig = {
 const viewConfig = document.getElementById('view-config');
 const btnShowConfig = document.getElementById('btn-show-config');
 const btnSaveConfig = document.getElementById('btn-save-config');
+const btnSaveConfigTop = document.getElementById('btn-save-config-top');
+const formConfigStatusBadge = document.getElementById('form-config-status-badge');
+let isFormConfigDirty = false;
 const btnAddCustomField = document.getElementById('btn-add-custom-field');
 const newFieldType = document.getElementById('new-field-type');
 const newFieldOptionsGroup = document.getElementById('new-field-options-group');
 
 function switchTab(tabId) {
+    // Si salimos de la pestaña de formulario y había cambios sin guardar, persistirlos automáticamente
+    const currentActiveTab = document.querySelector('.tab-content.active');
+    if (currentActiveTab && currentActiveTab.id === 'tab-formulario' && tabId !== 'tab-formulario') {
+        if (isFormConfigDirty) {
+            saveCurrentFormConfig(false);
+        }
+    }
+
     const tabButtons = document.querySelectorAll('.tab-button[data-tab]');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -546,8 +650,16 @@ function switchTab(tabId) {
         loadFechasDisponibles();
         consultarAsistenciaHistorica();
     } else if (tabId === 'tab-estadisticas') {
-        switchEstadisticaPanel('presentismo');
         loadFechasDisponibles();
+        precargarCamposEstadisticasDesdeConfig();
+        const datosPanel = document.getElementById('estad-datos-panel');
+        const isDatos = datosPanel && datosPanel.style.display !== 'none';
+        if (isDatos) {
+            updateStats();
+        } else {
+            loadStatsGroupOptions();
+            cargarAusencias();
+        }
     } else if (tabId === 'tab-grupos') {
         loadGruposView();
     }
@@ -603,13 +715,20 @@ function actualizarRelojTardanza() {
     const hh = String(ahora.getHours()).padStart(2, '0');
     const mm = String(ahora.getMinutes()).padStart(2, '0');
     const ss = String(ahora.getSeconds()).padStart(2, '0');
-    const ahoraMin = ahora.getHours() * 60 + ahora.getMinutes();
-    let limiteTxt = '—';
-    let estadoTxt = '';
+    const curso = cursoSelect ? cursoSelect.value : '';
+
+    if (!curso) {
+        el.textContent = `⏰ ${hh}:${mm}:${ss} (sin curso activo)`;
+        return;
+    }
+
+    if (!cfgTardanza || cfgTardanza.modo === 'manual') {
+        el.textContent = `⏰ ${hh}:${mm}:${ss} (modo manual)`;
+        return;
+    }
+
     const lim = calcularLimiteMin(cfgTardanza, horaTomaListaHoy);
     if (lim === null) {
-        limiteTxt = 'sin detección automática';
-    } else {
         const lh = String(Math.floor(lim / 60)).padStart(2, '0');
         const lm = String(lim % 60).padStart(2, '0');
         limiteTxt = `${lh}:${lm}`;
@@ -726,6 +845,7 @@ function switchEstadisticaPanel(panel) {
     if (btnPres) btnPres.classList.toggle('active', !showDatos);
 
     if (showDatos) {
+        precargarCamposEstadisticasDesdeConfig();
         requestAnimationFrame(() => {
             requestAnimationFrame(() => updateStats());
         });
@@ -745,6 +865,7 @@ function switchEstadisticaPanel(panel) {
 async function initAdmin() {
     await loadCursos();
     await loadServerInfo();
+    await precargarCamposEstadisticasDesdeConfig();
     await loadStatsGroupOptions();
     await loadFechasDisponibles();
     refreshAlumnosList();
@@ -2795,6 +2916,28 @@ async function editAlumnoGrupo(nombreAlumno, grupoActual) {
     }
 }
 
+function setFormConfigDirty(dirty) {
+    isFormConfigDirty = dirty;
+    const badge = document.getElementById('form-config-status-badge');
+    const btnTop = document.getElementById('btn-save-config-top');
+    const btnBtm = document.getElementById('btn-save-config');
+    if (dirty) {
+        if (badge) {
+            badge.className = 'form-config-status-pill dirty';
+            badge.textContent = '⚠️ Cambios sin guardar';
+        }
+        if (btnTop) btnTop.classList.add('pulse-save');
+        if (btnBtm) btnBtm.classList.add('pulse-save');
+    } else {
+        if (badge) {
+            badge.className = 'form-config-status-pill saved';
+            badge.textContent = '✅ Configuración guardada';
+        }
+        if (btnTop) btnTop.classList.remove('pulse-save');
+        if (btnBtm) btnBtm.classList.remove('pulse-save');
+    }
+}
+
 async function loadAdminFormConfig() {
     try {
         const res = await fetch('/api/form-config');
@@ -2802,6 +2945,7 @@ async function loadAdminFormConfig() {
         renderStandardFields();
         renderCustomFields();
         syncAsistenciaConfigUI();
+        setFormConfigDirty(false);
     } catch (err) {
         console.error('Error cargando configuración del formulario', err);
     }
@@ -2894,9 +3038,10 @@ function renderCustomFields() {
         const card = document.createElement('div');
         card.style.cssText = 'background: rgba(255,255,255,0.06); padding: 1rem; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.4); display: flex; flex-direction: column; gap: 0.5rem; position: relative;';
         
-        const isSelect = field.type === 'select';
+        const hasOptions = field.type === 'select' || field.type === 'multiselect';
         const optionsCount = (field.options && Array.isArray(field.options)) ? field.options.length : 0;
         const currentCategory = field.category || 'clase';
+        const tipoTxt = field.type === 'multiselect' ? '☑️ Varias Opciones (Casillas)' : field.type === 'select' ? 'Desplegable' : field.type === 'number' ? 'Número' : 'Texto';
 
         card.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
@@ -2907,7 +3052,7 @@ function renderCustomFields() {
                 </select>
                 <button onclick="removeCustomField(${index})" style="background: none; border: none; color: #ef4444; font-size: 1.2rem; cursor: pointer; padding: 0 0.2rem;" title="Eliminar campo">&times;</button>
             </div>
-            <div style="font-size: 0.85rem; opacity: 0.7;">Tipo: ${field.type === 'select' ? 'Desplegable' : field.type === 'number' ? 'Número' : 'Texto'}</div>
+            <div style="font-size: 0.85rem; opacity: 0.7;">Tipo: ${tipoTxt}</div>
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem;">
                 <input type="checkbox" id="cust_enable_${index}" ${field.enabled !== false ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="cust_enable_${index}" style="cursor: pointer;">Solicitar en Formulario</label>
@@ -2916,10 +3061,10 @@ function renderCustomFields() {
                 <input type="checkbox" id="cust_req_${index}" ${field.required ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
                 <label for="cust_req_${index}" style="cursor: pointer;">Obligatorio</label>
             </div>
-            ${isSelect ? `
+            ${hasOptions ? `
                 <div style="margin-top: 0.3rem;">
                     <button type="button" onclick="openOptionsModal('custom', ${index})" class="btn-secondary" style="width: 100%; padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #fbbf24;">
-                        ⚙️ Opciones Desplegable (${optionsCount})
+                        ⚙️ Opciones ${field.type === 'multiselect' ? 'Casillas' : 'Desplegable'} (${optionsCount})
                     </button>
                 </div>
             ` : ''}
@@ -2936,21 +3081,95 @@ async function removeCustomField(index) {
     }
 }
 
-// ── BOTÓN LIMPIEZA / DESMARCADO DE TILDES ─────────────────────────────
-document.getElementById('btn-uncheck-all')?.addEventListener('click', async () => {
-    if (confirm('¿Deseas desmarcar la solicitud de todos los campos?\n\nLos campos NO se borrarán del sistema, solo se desactivarán para que puedas activarlos nuevamente cuando lo requieras.')) {
-        Object.keys(currentFormConfig.standardFields || {}).forEach(k => {
-            currentFormConfig.standardFields[k].enabled = false;
+// ── ACCIONES RÁPIDAS DE MARCADO / DESMARCADO DE FORMULARIO ──────────
+function desmarcarTodoFormulario() {
+    if (!currentFormConfig) return;
+    Object.keys(currentFormConfig.standardFields || {}).forEach(k => {
+        currentFormConfig.standardFields[k].enabled = false;
+        const cb = document.getElementById(`std_enable_${k}`);
+        if (cb) cb.checked = false;
+    });
+    (currentFormConfig.customFields || []).forEach((f, idx) => {
+        f.enabled = false;
+        const cb = document.getElementById(`cust_enable_${idx}`);
+        if (cb) cb.checked = false;
+    });
+    setFormConfigDirty(true);
+}
+
+function marcarCamposEstandar() {
+    if (!currentFormConfig) return;
+    Object.keys(currentFormConfig.standardFields || {}).forEach(k => {
+        currentFormConfig.standardFields[k].enabled = true;
+        const cb = document.getElementById(`std_enable_${k}`);
+        if (cb) cb.checked = true;
+    });
+    setFormConfigDirty(true);
+}
+
+function marcarCamposPersonalizados() {
+    if (!currentFormConfig) return;
+    (currentFormConfig.customFields || []).forEach((f, idx) => {
+        f.enabled = true;
+        const cb = document.getElementById(`cust_enable_${idx}`);
+        if (cb) cb.checked = true;
+    });
+    setFormConfigDirty(true);
+}
+
+function marcarUltimosCampos(cantidad = 2) {
+    if (!currentFormConfig) return;
+    const customList = currentFormConfig.customFields || [];
+    if (customList.length > 0) {
+        const startIdx = Math.max(0, customList.length - cantidad);
+        for (let i = startIdx; i < customList.length; i++) {
+            customList[i].enabled = true;
+            const cb = document.getElementById(`cust_enable_${i}`);
+            if (cb) cb.checked = true;
+        }
+    } else {
+        const stdKeys = Object.keys(currentFormConfig.standardFields || {});
+        const lastKeys = stdKeys.slice(-2);
+        lastKeys.forEach(k => {
+            currentFormConfig.standardFields[k].enabled = true;
+            const cb = document.getElementById(`std_enable_${k}`);
+            if (cb) cb.checked = true;
         });
-        (currentFormConfig.customFields || []).forEach(f => {
-            f.enabled = false;
-        });
-        renderStandardFields();
-        renderCustomFields();
-        await saveCurrentFormConfig(false);
-        alert('🧹 Todas las casillas han sido desmarcadas y guardadas.\nEn la vista del alumno sólo se solicitará la selección de su nombre para dar el presente.');
+    }
+    setFormConfigDirty(true);
+}
+
+document.getElementById('btn-uncheck-all')?.addEventListener('click', () => {
+    desmarcarTodoFormulario();
+});
+
+document.getElementById('btn-check-standard')?.addEventListener('click', () => {
+    marcarCamposEstandar();
+});
+
+document.getElementById('btn-check-custom')?.addEventListener('click', () => {
+    marcarCamposPersonalizados();
+});
+
+document.getElementById('btn-check-latest')?.addEventListener('click', () => {
+    marcarUltimosCampos(2);
+});
+
+// Detectar cambios manuales en checkboxes y desplegables de configuración
+document.getElementById('standard-fields-container')?.addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"], select')) {
+        setFormConfigDirty(true);
     }
 });
+
+document.getElementById('custom-fields-container')?.addEventListener('change', (e) => {
+    if (e.target.matches('input[type="checkbox"], select')) {
+        setFormConfigDirty(true);
+    }
+});
+
+document.getElementById('asistencia-permitir-tardio')?.addEventListener('change', () => setFormConfigDirty(true));
+document.getElementById('asistencia-hora-limite')?.addEventListener('input', () => setFormConfigDirty(true));
 
 // ── GESTOR DE OPCIONES EN MODAL DE DESPLEGABLES ──────────────────────
 function openOptionsModal(fieldType, keyOrIndex) {
@@ -3059,7 +3278,7 @@ document.getElementById('btn-guardar-opciones-modal')?.addEventListener('click',
 });
 
 newFieldType?.addEventListener('change', (e) => {
-    if (e.target.value === 'select') {
+    if (e.target.value === 'select' || e.target.value === 'multiselect') {
         newFieldOptionsGroup.style.display = 'block';
     } else {
         newFieldOptionsGroup.style.display = 'none';
@@ -3082,10 +3301,10 @@ btnAddCustomField?.addEventListener('click', () => {
     const type = typeInput.value;
     const category = catInput ? catInput.value : 'clase';
     let options = [];
-    if (type === 'select') {
+    if (type === 'select' || type === 'multiselect') {
         options = optionsInput.value.split(',').map(o => o.trim()).filter(o => o);
         if (options.length === 0) {
-            alert('Para un campo de tipo Desplegable, debes ingresar al menos una opción.');
+            alert('Para un campo de opciones o casillas, debes ingresar al menos una opción.');
             return;
         }
     }
@@ -3146,6 +3365,8 @@ async function saveCurrentFormConfig(showAlert = true) {
         });
         const data = await res.json();
         if (data.success) {
+            setFormConfigDirty(false);
+            precargarCamposEstadisticasDesdeConfig();
             if (showAlert) alert('✅ Configuración del formulario guardada con éxito.');
             return true;
         } else {
@@ -3159,6 +3380,10 @@ async function saveCurrentFormConfig(showAlert = true) {
 }
 
 btnSaveConfig?.addEventListener('click', async () => {
+    await saveCurrentFormConfig(true);
+});
+
+btnSaveConfigTop?.addEventListener('click', async () => {
     await saveCurrentFormConfig(true);
 });
 

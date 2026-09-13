@@ -194,12 +194,25 @@
                     <section class="card glass">
                         <div class="section-header">
                             <div>
-                                <h2>⚙️ Configuración del Formulario para Alumnos</h2>
+                                <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                                    <h2>⚙️ Configuración del Formulario para Alumnos</h2>
+                                    <span id="form-config-status-badge" class="form-config-status-pill saved">✅ Configuración guardada</span>
+                                </div>
                                 <p>Elige los datos que se le solicitarán al estudiante cuando escanee el código QR.</p>
                             </div>
-                            <div class="section-actions">
-                                <button id="btn-uncheck-all" class="btn-secondary" title="Desmarca todas las casillas activas">🧹 Desmarcar Todas</button>
-                                <button id="btn-student-view" class="btn-secondary">👤 Probar Vista Alumno</button>
+                        </div>
+
+                        <!-- Barra de Acciones Rápidas y Guardado Superior -->
+                        <div class="form-actions-toolbar">
+                            <div class="form-actions-left">
+                                <button id="btn-uncheck-all" class="btn-action-base btn-action-uncheck" type="button" title="Desmarca todas las casillas activas">🧹 Desmarcar Todo</button>
+                                <button id="btn-check-standard" class="btn-action-base btn-action-standard" type="button" title="Marca todos los campos estándar">👤 Marcar Estándar</button>
+                                <button id="btn-check-custom" class="btn-action-base btn-action-custom" type="button" title="Marca todos los campos personalizados">📚 Marcar Personalizados</button>
+                                <button id="btn-check-latest" class="btn-action-base btn-action-latest" type="button" title="Marca los últimos campos agregados">⭐ Marcar Últimos</button>
+                                <button id="btn-student-view" class="btn-action-base btn-action-demo" type="button">👁️ Probar Vista Alumno</button>
+                            </div>
+                            <div class="form-actions-right">
+                                <button id="btn-save-config-top" class="btn-action-base btn-action-save" type="button" title="Guardar configuración">💾 Guardar Configuración</button>
                             </div>
                         </div>
 

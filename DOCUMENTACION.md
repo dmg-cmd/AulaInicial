@@ -8,6 +8,77 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 
 | Plan | Versión | Título / Objetivo | Estado | Fecha de Cierre |
 | :--- | :---: | :--- | :---: | :---: |
+| [Plan 44](file:///e:/Sandbox/AulaInicial/Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md) | **v4.8.2** | Corrección de excepción TypeError al guardar datos en Excel (reading 'add') | **Finalizado ✅** | 2026-09-13 |
+| [Plan 43](file:///e:/Sandbox/AulaInicial/Docs/planes/43-solucion-definitiva-alto-contraste-formulario.md) | **v4.8.1** | Solución definitiva de alto contraste, fondos sólidos opacos y blindaje contra fondos claros en formulario alumno | **Finalizado ✅** | 2026-09-13 |
+| [Plan 42](file:///e:/Sandbox/AulaInicial/Docs/planes/42-ubicacion-grupos-alto-contraste-alumno.md) | **v4.8.0** | Reubicación de grupos bajo el título y optimización de alto contraste en vista alumno | **Finalizado ✅** | 2026-09-13 |
+| [Plan 41](file:///e:/Sandbox/AulaInicial/Docs/planes/41-campo-seleccion-multiple-formulario.md) | **v4.7.0** | Selección múltiple (casillas de verificación) en formulario de alumnos y estadísticas desglosadas | **Finalizado ✅** | 2026-09-13 |
+| [Plan 40](file:///e:/Sandbox/AulaInicial/Docs/planes/40-campos-personalizados-selector-estadisticas.md) | **v4.6.0** | Disponibilidad dinámica de campos personalizados y preguntas del docente en estadísticas | **Finalizado ✅** | 2026-09-13 |
+| [Plan 39](file:///e:/Sandbox/AulaInicial/Docs/planes/39-barra-acciones-formulario-guardado-superior.md) | **v4.5.0** | Barra de acciones rápidas del formulario, botón superior de guardado y robustez en Excel | **Finalizado ✅** | 2026-09-13 |
+| [Plan 38](file:///e:/Sandbox/AulaInicial/Docs/planes/38-estadisticas-campos-personalizados.md) | **v4.4.1** | Visualización y métricas de estadísticas para campos y preguntas personalizadas en Panel Docente | **Finalizado ✅** | 2026-09-13 |
+
+---
+
+## 📋 Detalle de Mejoras por Versión
+
+### Versión 4.8.2 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md)
+- **Corrección de Excepción al Guardar Datos en Excel (`reading 'add'`):**
+  1. **Exportación Correcta de `registeredIPs` en `state.js`**: Se subsanó la discrepancia donde `src/core/state.js` solo exportaba `{ state }`, provocando que la desestructuración `const { state, registeredIPs } = require('../core/state')` dejara `registeredIPs` como `undefined`.
+  2. **Blindaje Defensivo en `registration.js`**: Invocaciones a `registeredIPs.add(clientIP)` y `registeredIPs.has(clientIP)` blindadas con validación defensiva de existencia (`state.registeredIPs`), eliminando el error `TypeError: Cannot read properties of undefined (reading 'add')`.
+  3. **Prueba de Integración Real**: Adición del test `test/registro-guardar.test.js` a la suite principal `npm test`, asegurando el guardado íntegro en planillas Excel sin interrupciones.
+
+### Versión 4.8.1 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/43-solucion-definitiva-alto-contraste-formulario.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/43-solucion-definitiva-alto-contraste-formulario.md)
+- **Solución Definitiva de Alto Contraste y Fondos Sólidos en el Formulario del Alumno:**
+  1. **Fondo General y Tarjetas 100% Opacas:** Fondo de página fijado en `#090d16 !important;` y tarjetas en `#0f172a !important;` con bordes nítidos de `1.5px`, anulando transparencias y blobs difusos de fondo que causaban apariencia de fondo claro en pantallas de celulares.
+  2. **Controles de Entrada en Negro Azabache Mate:** Todos los `input`, `select`, casillas multiselect y `textarea` establecidos en fondo sólido `#030712 !important;` con bordes `#475569 !important;` y letras blanco puro `#ffffff !important;` con `-webkit-text-fill-color: #ffffff !important;` (ratio de contraste 21:1, superando WCAG AAA).
+  3. **Directivas `color-scheme: dark`**: Incorporación de `<meta name="color-scheme" content="dark">` y `html { color-scheme: dark; }` para evitar que navegadores móviles en modo claro inyecten fondo blanco en inputs.
+  4. **Blindaje contra Autocompletado del Navegador (`-webkit-autofill`)**: Sombra interna forzada a `#030712` para neutralizar el fondo amarillo/claro que inyectan los navegadores en datos precargados.
+  5. **Depuración de Estilos Inline en JavaScript y TypeScript:** Se actualizaron `AUTO_INPUT_STYLE` y `style.cssText` en `index.js` y `main.ts` para eliminar fondos translúcidos generados dinámicamente.
+  6. **Cache-Busting Activo:** Parámetro de versión `style.css?v=4.8.1` para forzar la actualización inmediata en navegadores de los estudiantes.
+
+### Versión 4.8.0 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/42-ubicacion-grupos-alto-contraste-alumno.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/42-ubicacion-grupos-alto-contraste-alumno.md)
+- **Reubicación de Grupos y Alto Contraste en Vista Alumno:**
+  1. **Acción de Grupos en Cabecera:** Se eliminó la tarjeta inferior `.mig194` y se posicionó un botón ergonómico y compacto (`.btn-header-grupos`) debajo del subtítulo del curso activo.
+  2. **Alto Contraste General (WCAG AAA):** Las tarjetas `.card.glass` pasaron de un fondo semitransparente difuso a un fondo oscuro de alta opacidad (`rgba(15, 23, 42, 0.92)`) con bordes nítidos.
+  3. **Legibilidad de Letras y Textos:** Etiquetas de campos, cabeceras, placeholders y notas informativas configuradas con blancos nítidos (`#ffffff`) y contrastes directos.
+  4. **Contenedor Multiselect y Modal de Grupos:** Opciones con contraste elevado, realce al seleccionarse y tarjetas del modal con fondo sólido `#1e293b`.
+
+### Versión 4.7.0 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/41-campo-seleccion-multiple-formulario.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/41-campo-seleccion-multiple-formulario.md)
+- **Selección Múltiple (Casillas de Verificación) y Estadísticas Desglosadas:**
+  1. **Nuevo Tipo de Campo en Formulario (`multiselect`):** Los docentes pueden crear y configurar campos de varias opciones mediante casillas de verificación (checkboxes) para relevamientos pedagógicos y tecnológicos (ej. *«¿Qué plataformas educativas has utilizado alguna vez?»*).
+  2. **Interfaz del Alumno Interactiva y Adaptable:** Casillas estilizadas con borde suave, fondo reactivo de selección (`#6366f1`), accesibles con teclado y optimizadas para pantallas táctiles de celulares.
+  3. **Almacenamiento Compatible en Excel:** Concatenación estándar separada por comas (`"Google Classroom, Moodle"`), permitiendo una lectura fluida tanto humana como por sistemas externos.
+  4. **Desglose Analítico en Estadísticas:** El backend descompone las respuestas con múltiples valores para computar frecuencias unitarias por opción y porcentajes basados en la cantidad real de alumnos encuestados.
+  5. **Sincronización Dual:** Implementación idéntica en JavaScript nativo (`index.js`, `admin.js`, `src/features/attendance.js`) y en TypeScript refactorizado (`main.ts`, `AttendanceService.ts`).
+
+### Versión 4.6.0 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/40-campos-personalizados-selector-estadisticas.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/40-campos-personalizados-selector-estadisticas.md)
+- **Disponibilidad Total y Dinámica de Campos Personalizados en Estadísticas:**
+  1. **Integración Completa de Preguntas del Docente (`customFields`):** Todos los campos y encuestas configurados por el docente se encuentran permanentemente disponibles para evaluar las respuestas de los estudiantes en gráficos y tablas de frecuencias, sin depender de que la casilla esté tildada ese mismo día en el formulario.
+  2. **Detección Automática de Columnas en Excel:** Inspección directa del libro de cálculo (`TED - PDS San Miguel mayo 2025.xlsx`) para incorporar cualquier columna adicional con respuestas de alumnos.
+  3. **Selector Estructurado con Grupos Semánticos (`optgroup`):** Categorización accesible en `📌 Campo a Analizar`:
+     - `📌 Campos Estándar del Sistema`
+     - `📚 Preguntas del Docente y Encuestas`
+     - `📊 Otras Columnas del Curso (Excel)`
+  4. **Precarga Proactiva y Sincronización en Vivo:** Carga inmediata de campos al arrancar el panel docente, al entrar a la pestaña estadísticas y sincronización instantánea al guardar cambios en el formulario.
+
+### Versión 4.5.0 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/39-barra-acciones-formulario-guardado-superior.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/39-barra-acciones-formulario-guardado-superior.md)
+- **Mejoras en Usabilidad, Panel Docente y Robustez:**
+  1. **Barra Superior de Acciones Rápidas del Formulario:** Incorporación de botones ergonómicos en la cabecera de configuración:
+     - `🧹 Desmarcar Todo`: limpia todas las casillas de campos estándar y personalizados con un solo clic.
+     - `👤 Marcar Estándar`: activa masivamente los campos base (DNI, Email, Título, Tecnología, Grupo, Teléfono, Foto).
+     - `📚 Marcar Personalizados`: activa de forma masiva todas las preguntas y campos creados por el docente.
+     - `⭐ Marcar Últimos Campos`: selecciona automáticamente los campos creados más recientemente.
+     - `💾 Guardar Configuración`: botón superior en verde esmeralda con animación de pulso, accesible sin necesidad de desplazarse verticalmente y sincronizado con el botón inferior.
+     - `👁️ Probar Vista Alumno`: acceso instantáneo a la previsualización del alumno.
+  2. **Píldora Reactiva de Estado y Auto-guardado Silencioso:** Muestra el estado en vivo (`✓ Todo guardado` / `● Cambios pendientes...`) y guarda automáticamente los cambios al navegar entre pestañas evitando pérdidas accidentales de casillas marcadas.
+  3. **Blindaje de Manejo de Tipos en Excel:** Coerción segura de datos numéricos a texto con `String(...).trim()` en DNI, Teléfono y campos personalizados al registrar asistencias o actualizar fichas en el Excel.
+
+### Versión 4.4.1 (2026-09-13)
 | [Plan 35](file:///e:/Sandbox/AulaInicial/Docs/planes/35-soporte-compilacion-macos-apple.md) | **v4.4.0** | Soporte y compilación para computadoras Apple (macOS Apple Silicon e Intel) | **Finalizado ✅** | 2026-09-12 |
 | [Plan 34](file:///e:/Sandbox/AulaInicial/Docs/planes/34-actualizacion-readme-mejoras-github.md) | **v4.3.1** | Publicación y actualización de mejoras en el README de GitHub | **Finalizado ✅** | 2026-09-07 |
 | [Plan 33](file:///e:/Sandbox/AulaInicial/Docs/planes/33-auditoria-compilacion-publicacion-github.md) | **v4.3.1** | Auditoría DLP, compilación de binarios y publicación a GitHub | **Finalizado ✅** | 2026-09-07 |
@@ -20,6 +91,14 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 ---
 
 ## 📋 Detalle de Mejoras por Versión
+
+### Versión 4.4.1 (2026-09-13)
+- **Plan asociado:** [`Docs/planes/38-estadisticas-campos-personalizados.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/38-estadisticas-campos-personalizados.md)
+- **Correcciones y Mejoras Funcionales en Estadísticas:**
+  1. **Solución a fallo en `/api/stats`:** Corrección de la referencia no definida `formConfig` en `src/features/attendance.js` que causaba error HTTP 500.
+  2. **Población dinámica de preguntas del docente (`customFields`):** Integración de todos los campos personalizados habilitados en el selector `Campo a Analizar` del panel docente.
+  3. **Extracción inteligente de columnas en Excel:** Mapeo de identificadores y etiquetas de preguntas para computar frecuencias, totales y porcentajes en gráficos (barras, torta, dona, radar) y tablas dinámicas.
+  4. **Preservación total de campos estándar:** Todos los campos estándar (Título, Tecnología, Grupo, Asistencia, DNI, Email, Teléfono) permanecen siempre disponibles para nuevas consultas o análisis de planillas históricas, integrándose armónicamente con los campos personalizados.
 
 ### Versión 4.4.0 (2026-09-12)
 - **Plan asociado:** [`Docs/planes/35-soporte-compilacion-macos-apple.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/35-soporte-compilacion-macos-apple.md)

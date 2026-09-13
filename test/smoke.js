@@ -80,6 +80,84 @@ async function waitForServer(tries = 40) {
             req.on('error', () => { ok('CORS: servidor no accesible desde origen ajeno (rechazado)'); resolve(); });
             req.end();
         });
+
+        // Verificación de /api/stats con campos personalizados de formulario
+        await new Promise((resolve) => {
+            const fs = require('fs');
+            const passFile = path.join(__dirname, '..', '.adminpass');
+            const adminPass = (fs.existsSync(passFile) ? fs.readFileSync(passFile, 'utf8').trim() : (process.env.ADMIN_PASS || 'admin123')) || 'admin123';
+            const postData = JSON.stringify({ password: adminPass });
+            const loginReq = http.request(BASE + '/api/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData)
+                }
+            }, res => {
+                const cookie = res.headers['set-cookie'];
+                let sessionCookie = '';
+                if (cookie && Array.isArray(cookie)) {
+                    const match = cookie.find(c => c.startsWith('aula_admin_session='));
+                    if (match) sessionCookie = match.split(';')[0];
+                }
+                res.resume();
+                res.on('end', () => {
+                    if (sessionCookie) {
+                        http.get(BASE + '/api/stats', {
+                            headers: { Cookie: sessionCookie }
+                        }, statsRes => {
+                            let sBody = '';
+                            statsRes.on('data', c => (sBody += c));
+                            statsRes.on('end', () => {
+                                try {
+                                    const json = JSON.parse(sBody);
+                                    if (statsRes.statusCode === 200 && Array.isArray(json.availableFields)) {
+                                        const hasCustom = json.availableFields.some(f => f.id.startsWith('custom_') || f.label.includes('tarea'));
+                                        const customField = json.availableFields.find(f => f.id.startsWith('custom_'));
+                                        if (hasCustom && customField) {
+                                            ok('GET /api/stats responde 200 e incluye campos personalizados (customFields)');
+                                            http.get(BASE + `/api/stats?campo=${encodeURIComponent(customField.id)}`, {
+                                                headers: { Cookie: sessionCookie }
+                                            }, customStatsRes => {
+                                                let csBody = '';
+                                                customStatsRes.on('data', c => (csBody += c));
+                                                customStatsRes.on('end', () => {
+                                                    try {
+                                                        const csJson = JSON.parse(csBody);
+                                                        if (customStatsRes.statusCode === 200 && Array.isArray(csJson.data)) {
+                                                            ok(`GET /api/stats?campo=${customField.id} procesa y responde estadísticas correctamente`);
+                                                        } else {
+                                                            fail('GET /api/stats con campo personalizado falló');
+                                                        }
+                                                    } catch (e) {
+                                                        fail('Error al parsear estadísticas de campo personalizado: ' + e.message);
+                                                    }
+                                                    resolve();
+                                                });
+                                            }).on('error', e => { fail('Llamada a stats con customField falló: ' + e.message); resolve(); });
+                                            return;
+                                        } else if (!hasCustom) {
+                                            fail('GET /api/stats no incluye campos personalizados');
+                                        }
+                                    } else {
+                                        fail(`GET /api/stats falló (status ${statsRes.statusCode})`);
+                                    }
+                                } catch (err) {
+                                    fail('GET /api/stats respuesta JSON inválida: ' + err.message);
+                                }
+                                resolve();
+                            });
+                        }).on('error', e => { fail('GET /api/stats falló: ' + e.message); resolve(); });
+                    } else {
+                        fail('No se pudo autenticar para probar /api/stats');
+                        resolve();
+                    }
+                });
+            });
+            loginReq.on('error', e => { fail('Login admin falló: ' + e.message); resolve(); });
+            loginReq.write(postData);
+            loginReq.end();
+        });
     } catch (e) {
         if (e.message !== 'no-up') { fail('Error inesperado: ' + e.message); }
     } finally {

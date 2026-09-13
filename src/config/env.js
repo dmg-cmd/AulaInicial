@@ -66,7 +66,7 @@ function getLocalIPs() {
     return ips;
 }
 
-let APP_VERSION = '4.4.0';
+let APP_VERSION = '4.8.2';
 try {
     const pkgPath = path.join(ROOT_DIR, 'package.json');
     if (fs.existsSync(pkgPath)) {
@@ -74,7 +74,7 @@ try {
         if (pkg.version) APP_VERSION = pkg.version;
     }
 } catch (err) {
-    // fallback a 4.4.0
+    // fallback a 4.8.2
 }
 
 module.exports = { PORT, ROOT_DIR, ALLOWED_ORIGINS, HMAC_SECRET, getLocalIPs, APP_VERSION };
