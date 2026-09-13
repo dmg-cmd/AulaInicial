@@ -23,9 +23,6 @@ jobs:
           - os: macos-latest
             script: build:macos-arm64
             artifact: AulaInicial-macos-arm64
-          - os: macos-13
-            script: build:macos-x64
-            artifact: AulaInicial-macos-x64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -42,11 +39,15 @@ jobs:
       - name: Build binary
         run: npm run ${{ matrix.script }}
 
+      - name: Create macOS alias
+        if: matrix.os == 'macos-latest'
+        run: cp bin/AulaInicial-macos-arm64 bin/AulaInicial-macos
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: bin/${{ matrix.artifact }}
+          path: bin/${{ matrix.artifact }}*
 
   release:
     needs: build
@@ -64,7 +65,7 @@ jobs:
             artifacts/AulaInicial-linux/AulaInicial-linux
             artifacts/AulaInicial.exe/AulaInicial.exe
             artifacts/AulaInicial-macos-arm64/AulaInicial-macos-arm64
-            artifacts/AulaInicial-macos-x64/AulaInicial-macos-x64
+            artifacts/AulaInicial-macos-arm64/AulaInicial-macos
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
