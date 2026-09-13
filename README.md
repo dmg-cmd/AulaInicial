@@ -41,6 +41,36 @@ Plataforma **portátil, autónoma y de cero configuración** para gestionar asis
 3. El script iniciará el servidor local y abrirá automáticamente el **Panel Docente** en `http://localhost:3000/admin.html`.
 4. Proyectar el código QR para que los estudiantes ingresen desde su celular a `http://<IP_LOCAL>:3000`.
 
+### 🍎 Guía para Computadoras Apple (macOS)
+
+#### 1. Macs con Apple Silicon (chips M1, M2, M3 o M4):
+- **Automático:** Al ejecutar `./start.sh`, el script detecta la Mac y descarga automáticamente el ejecutable `AulaInicial-macos-arm64` desde [GitHub Releases](https://github.com/dmg-cmd/AulaInicial/releases).
+- **Manual:** Descarga `AulaInicial-macos-arm64` desde Releases, colócalo dentro de `bin/` y ejecuta `./start.sh`.
+
+#### 2. Macs con procesador Intel (modelos anteriores a 2020):
+En Macs con arquitectura Intel x86_64 existen tres métodos sencillos para ejecutar AulaInicial:
+- **Método A (Recomendado y nativo con Node.js):**
+  Instala Node.js en la Mac desde [nodejs.org](https://nodejs.org) (descarga el instalador `.pkg` para macOS). Luego abre la terminal en la carpeta del proyecto y ejecuta:
+  ```bash
+  ./start.sh
+  ```
+  *(o directamente `node server.js`)*. Arranca de inmediato al 100% de rendimiento.
+- **Método B (A través del binario para Linux con Docker o contenedor):**
+  Dado que los ejecutables de Linux (`AulaInicial-linux`) requieren un entorno con kernel Linux, si dispones de **Docker Desktop**, **OrbStack** o **Lima** en tu Mac Intel, puedes ejecutar el sistema montando la carpeta con una sola línea:
+  ```bash
+  docker run --rm -it -v "$(pwd)":/app -w /app -p 3000:3000 node:22 node server.js
+  ```
+  O corriendo directamente el ejecutable Linux dentro de un contenedor:
+  ```bash
+  docker run --rm -it -v "$(pwd)":/app -w /app -p 3000:3000 ubuntu:22.04 ./bin/AulaInicial-linux
+  ```
+- **Método C (Compilar localmente tu propio binario para Intel Mac):**
+  Teniendo Node instalado en tu Mac Intel, puedes generar tu ejecutable independiente corriendo:
+  ```bash
+  npm run build:macos-x64
+  ```
+  Esto creará `bin/AulaInicial-macos-x64` para usarlo directamente.
+
 ### Opción 2: Modo Desarrollo con Node.js
 Requiere **Node.js >= 22.0.0**.
 

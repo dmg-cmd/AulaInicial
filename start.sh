@@ -50,6 +50,20 @@ if command -v node >/dev/null 2>&1; then
 fi
 
 # 3) Faltan ambos: auto-descargar el binario desde Releases (latest)
+if [ "$OS" = "Darwin" ] && [ "$ARCH" != "arm64" ]; then
+    echo "============================================================="
+    echo "  AVISO: Computadora Apple con procesador Intel detectada."
+    echo ""
+    echo "  Para ejecutar AulaInicial en Mac Intel tienes 2 opciones:"
+    echo "  1) Instalar Node.js desde https://nodejs.org (Recomendado)."
+    echo "     Luego vuelve a ejecutar ./start.sh y arrancara al instante."
+    echo "  2) Ejecutar mediante Docker / OrbStack con el binario Linux:"
+    echo "     docker run --rm -it -v \"\$(pwd)\":/app -w /app -p 3000:3000 node:22 node server.js"
+    echo "============================================================="
+    read -p "Presiona ENTER para salir..."
+    exit 1
+fi
+
 echo "============================================================="
 echo "  AVISO: Este programa necesita descargar un componente la"
 echo "  primera vez (requiere conexion a internet). Solo tardara"
