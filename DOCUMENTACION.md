@@ -8,6 +8,17 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 
 | Plan | Versión | Título / Objetivo | Estado | Fecha de Cierre |
 | :--- | :---: | :--- | :---: | :---: |
+| [Plan 60](file:///e:/Sandbox/AulaInicial/Docs/planes/60-publicacion-segura-github-v4101.md) | **v4.10.1** | Publicación segura a GitHub (Versión 4.10.1) con auditoría DLP | **En curso ⏳** | Pendiente |
+| [Plan 59](file:///e:/Sandbox/AulaInicial/Docs/planes/59-solucion-definitiva-logo-base64.md) | **v4.10.1** | Solución definitiva de visualización de logotipo (embebido Data URI directo y recompilación) | **Finalizado ✅** | 2026-09-19 |
+| [Plan 58](file:///e:/Sandbox/AulaInicial/Docs/planes/58-correccion-visualizacion-logo-version-blindaje.md) | **v4.10.0** | Corrección y blindaje definitivo de visualización de logotipo y versión del sistema | **Finalizado ✅** | 2026-09-19 |
+| [Plan 57](file:///e:/Sandbox/AulaInicial/Docs/planes/57-correccion-presente-automatico-primer-alumna-aislamiento-tests.md) | **v4.9.4** | Corrección de falso presente automático en primer alumna y aislamiento total de pruebas automatizadas | **Finalizado ✅** | 2026-09-14 |
+| [Plan 56](file:///e:/Sandbox/AulaInicial/Docs/planes/56-restauracion-campos-formulario-blindaje.md) | **v4.9.3** | Restauración de campos estándar y personalizados en formulario y blindaje contra desmarcado accidental | **Finalizado ✅** | 2026-09-14 |
+| [Plan 55](file:///e:/Sandbox/AulaInicial/Docs/planes/55-speeches-descripciones-comentarios-redes.md) | **v4.9.2** | Speeches escritos para descripciones y primeros comentarios fijados por red social | **Finalizado ✅** | 2026-09-14 |
+| [Plan 54](file:///e:/Sandbox/AulaInicial/Docs/planes/54-guia-maestra-publicacion-speeches-redes.md) | **v4.9.2** | Guía maestra de publicación, speeches de locución y optimización de algoritmos | **Finalizado ✅** | 2026-09-14 |
+| [Plan 53](file:///e:/Sandbox/AulaInicial/Docs/planes/53-placa-cierre-video-outro-identidad.md) | **v4.9.2** | Diseño y renderizado de placas de cierre (outro cards) 16:9 y 9:16 para videos | **Finalizado ✅** | 2026-09-14 |
+| [Plan 52](file:///e:/Sandbox/AulaInicial/Docs/planes/52-canales-oficiales-publicidad-iconos-redes.md) | **v4.9.2** | Configuración de canales oficiales en publicidad y barra de íconos de redes | **Finalizado ✅** | 2026-09-14 |
+| [Plan 51](file:///e:/Sandbox/AulaInicial/Docs/planes/51-banner-apoyo-kofi-instagram.md) | **v4.9.1** | Banner no invasivo de apoyo comunitario (Ko-fi e Instagram) | **Finalizado ✅** | 2026-09-14 |
+| [Plan 50](file:///e:/Sandbox/AulaInicial/Docs/planes/50-integracion-logotipo-oficial-aulainicial.md) | **v4.9.0** | Integración del logotipo oficial de AulaInicial en web (favicon, cabeceras, login y assets) | **Finalizado ✅** | 2026-09-14 |
 | [Plan 44](file:///e:/Sandbox/AulaInicial/Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md) | **v4.8.2** | Corrección de excepción TypeError al guardar datos en Excel (reading 'add') | **Finalizado ✅** | 2026-09-13 |
 | [Plan 43](file:///e:/Sandbox/AulaInicial/Docs/planes/43-solucion-definitiva-alto-contraste-formulario.md) | **v4.8.1** | Solución definitiva de alto contraste, fondos sólidos opacos y blindaje contra fondos claros en formulario alumno | **Finalizado ✅** | 2026-09-13 |
 | [Plan 42](file:///e:/Sandbox/AulaInicial/Docs/planes/42-ubicacion-grupos-alto-contraste-alumno.md) | **v4.8.0** | Reubicación de grupos bajo el título y optimización de alto contraste en vista alumno | **Finalizado ✅** | 2026-09-13 |
@@ -19,6 +30,26 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 ---
 
 ## 📋 Detalle de Mejoras por Versión
+
+### Versión 4.10.1 (2026-09-19)
+- **Plan asociado:** [`Docs/planes/59-solucion-definitiva-logo-base64.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/59-solucion-definitiva-logo-base64.md)
+- **Solución Definitiva de Logotipo y Empaquetado:**
+  1. **Fallback Inmediato Data URI Base64:** Incorporación de `assets/logo-base64.js` y conmutación automática en caso de interrupción de red.
+  2. **Resolución Resiliente de Directorio de Assets:** Localización adaptativa de `assets/` en ejecutable empaquetado y entorno local.
+
+### Versión 4.10.0 (2026-09-19)
+- **Plan asociado:** [`Docs/planes/58-correccion-visualizacion-logo-version-blindaje.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/58-correccion-visualizacion-logo-version-blindaje.md)
+- **Precarga Estática de Versión y Blindaje de Badges:**
+  1. **Pre-renderizado Inmediato:** Badges de versión pre-renderizados en el HTML eliminando demoras visuales.
+  2. **Resolución de Versión en Backend:** Carga resiliente de `package.json` desde rutas ejecutables y de desarrollo.
+
+### Versión 4.9.4 (2026-09-14)
+- **Plan asociado:** [`Docs/planes/57-correccion-presente-automatico-primer-alumna-aislamiento-tests.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/57-correccion-presente-automatico-primer-alumna-aislamiento-tests.md)
+- **Aislamiento de Tests y Corrección de Falso Presente:**
+  1. **Aislamiento de Pruebas:** Modificación de `src/config/paths.js` y `test/registro-guardar.test.js` para usar carpetas temporales y cursos mock desechables, garantizando que `npm test` no toque jamás las planillas reales de producción.
+  2. **Restauración de Planilla Excel:** Purga de la fecha de hoy espuria en `registros/TED - PDS San Miguel mayo 2025.xlsx` y restauración de los datos limpios originales de la primera alumna (`Lucila Alende Noceti`), volviendo a su estado pendiente sin marcas en verde.
+
+---
 
 ### Versión 4.8.2 (2026-09-13)
 - **Plan asociado:** [`Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/44-fix-error-guardar-datos-excel-reading-add.md)

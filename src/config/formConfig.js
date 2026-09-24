@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { CONFIG_PATH } = require('./paths');
+const { CONFIG_PATH, CONFIG_BACKUP_PATH } = require('./paths');
 const { state } = require('../core/state');
 const { requireAdmin } = require('../core/auth');
 
@@ -28,49 +28,75 @@ const defaultConfig = {
     }
 };
 
+function parseConfigContent(raw) {
+    const parsed = JSON.parse(raw);
+    const std = {};
+    Object.keys(defaultConfig.standardFields).forEach(k => {
+        const def = defaultConfig.standardFields[k];
+        const stored = (parsed.standardFields && parsed.standardFields[k]) || {};
+        std[k] = {
+            ...def,
+            ...stored,
+            category: stored.category || def.category || 'personal',
+            options: (stored.options && stored.options.length > 0) ? stored.options : (def.options || [])
+        };
+    });
+
+    const custom = (Array.isArray(parsed.customFields) ? parsed.customFields : []).map(f => ({
+        ...f,
+        category: f.category || 'clase',
+        options: f.options || []
+    }));
+
+    const asistencia = {
+        permitirPresenteTardio: parsed.asistencia?.permitirPresenteTardio !== false,
+        horaLimite: typeof parsed.asistencia?.horaLimite === 'string' ? parsed.asistencia.horaLimite.trim() : ''
+    };
+
+    return {
+        standardFields: std,
+        customFields: custom,
+        asistencia,
+        cursoPreferido: typeof parsed.cursoPreferido === 'string' ? parsed.cursoPreferido.trim() : ''
+    };
+}
+
 function loadFormConfig() {
     try {
         if (fs.existsSync(CONFIG_PATH)) {
             const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
-            const parsed = JSON.parse(raw);
-            const std = {};
-            Object.keys(defaultConfig.standardFields).forEach(k => {
-                const def = defaultConfig.standardFields[k];
-                const stored = (parsed.standardFields && parsed.standardFields[k]) || {};
-                std[k] = {
-                    ...def,
-                    ...stored,
-                    category: stored.category || def.category || 'personal',
-                    options: (stored.options && stored.options.length > 0) ? stored.options : (def.options || [])
-                };
-            });
-
-            const custom = (Array.isArray(parsed.customFields) ? parsed.customFields : []).map(f => ({
-                ...f,
-                category: f.category || 'clase',
-                options: f.options || []
-            }));
-
-            const asistencia = {
-                permitirPresenteTardio: parsed.asistencia?.permitirPresenteTardio !== false,
-                horaLimite: typeof parsed.asistencia?.horaLimite === 'string' ? parsed.asistencia.horaLimite.trim() : ''
-            };
-
-            return {
-                standardFields: std,
-                customFields: custom,
-                asistencia,
-                cursoPreferido: typeof parsed.cursoPreferido === 'string' ? parsed.cursoPreferido.trim() : ''
-            };
+            return parseConfigContent(raw);
+        } else if (CONFIG_BACKUP_PATH && fs.existsSync(CONFIG_BACKUP_PATH)) {
+            console.warn('⚠️ form-config.json no encontrado; recuperando desde form-config.backup.json...');
+            const rawBackup = fs.readFileSync(CONFIG_BACKUP_PATH, 'utf8');
+            const recovered = parseConfigContent(rawBackup);
+            fs.writeFileSync(CONFIG_PATH, JSON.stringify(recovered, null, 2), 'utf8');
+            return recovered;
         }
     } catch (err) {
         console.error('Error al cargar form-config.json:', err);
+        if (CONFIG_BACKUP_PATH && fs.existsSync(CONFIG_BACKUP_PATH)) {
+            try {
+                console.warn('⚠️ Intentando recuperación desde form-config.backup.json tras error...');
+                const rawBackup = fs.readFileSync(CONFIG_BACKUP_PATH, 'utf8');
+                return parseConfigContent(rawBackup);
+            } catch (backupErr) {
+                console.error('Error al leer backup de configuración:', backupErr);
+            }
+        }
     }
     return JSON.parse(JSON.stringify(defaultConfig));
 }
 
 function saveFormConfig(config) {
     try {
+        if (fs.existsSync(CONFIG_PATH) && CONFIG_BACKUP_PATH) {
+            try {
+                fs.copyFileSync(CONFIG_PATH, CONFIG_BACKUP_PATH);
+            } catch (bErr) {
+                console.warn('No se pudo crear backup de form-config:', bErr.message);
+            }
+        }
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
         state.formConfig = config;
         return true;

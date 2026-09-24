@@ -62,19 +62,33 @@ function getCookie(name) {
     return null;
 }
 
-async function loadAppVersion() {
+async function loadAppVersion(retries = 2) {
     try {
+        let vText = '';
         const res = await fetch('/api/version');
         if (res.ok) {
             const data = await res.json();
-            const vText = data.version ? `v${data.version}` : '';
+            if (data.version) vText = `v${data.version}`;
+        }
+        if (!vText) {
+            const sRes = await fetch('/api/server-info');
+            if (sRes.ok) {
+                const sData = await sRes.json();
+                if (sData.version) vText = `v${sData.version}`;
+            }
+        }
+        if (vText) {
             const badge = document.getElementById('app-version-badge');
             const footer = document.getElementById('footer-version');
             if (badge) badge.textContent = vText;
             if (footer) footer.textContent = vText;
+        } else if (retries > 0) {
+            setTimeout(() => loadAppVersion(retries - 1), 1000);
         }
     } catch (err) {
-        // Fallback silencioso
+        if (retries > 0) {
+            setTimeout(() => loadAppVersion(retries - 1), 1200);
+        }
     }
 }
 

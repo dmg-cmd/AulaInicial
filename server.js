@@ -6,7 +6,7 @@ const open = require('open');
 const qrcode = require('qrcode');
 
 const { PORT, ALLOWED_ORIGINS, ROOT_DIR, getLocalIPs } = require('./src/config/env');
-const { PUBLIC_DIR, FOTOS_DIR } = require('./src/config/paths');
+const { PUBLIC_DIR, FOTOS_DIR, ASSETS_DIR } = require('./src/config/paths');
 const { state } = require('./src/core/state');
 const { loadFormConfig } = require('./src/config/formConfig');
 const { registerAllRoutes } = require('./src/routes');
@@ -23,6 +23,7 @@ app.use(cors({
 }));
 
 app.use('/registros/fotos', express.static(FOTOS_DIR));
+app.use('/assets', express.static(ASSETS_DIR));
 app.use(express.static(PUBLIC_DIR));
 // Fallback mientras el frontend se migra a public/ (luego se puede quitar)
 app.use(express.static(ROOT_DIR));

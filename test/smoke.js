@@ -69,6 +69,19 @@ async function waitForServer(tries = 40) {
         if (serverInfoRes.status === 200 && serverInfoRes.json && serverInfoRes.json.version === pkg.version) ok(`GET /api/server-info incluye version ${pkg.version}`);
         else fail('GET /api/server-info no incluye versión: ' + JSON.stringify(serverInfoRes.json));
 
+        // Verificación de recursos estáticos del logotipo oficial y favicon
+        const logoRes = await get('/assets/logo-header.png');
+        if (logoRes.status === 200) ok('GET /assets/logo-header.png responde 200 OK');
+        else fail(`GET /assets/logo-header.png falló con status ${logoRes.status}`);
+
+        const favRes = await get('/assets/favicon.png');
+        if (favRes.status === 200) ok('GET /assets/favicon.png responde 200 OK');
+        else fail(`GET /assets/favicon.png falló con status ${favRes.status}`);
+
+        const icoRes = await get('/favicon.ico');
+        if (icoRes.status === 200) ok('GET /favicon.ico responde 200 OK');
+        else fail(`GET /favicon.ico falló con status ${icoRes.status}`);
+
         // CORS: un origen no permitido NO debe reflejarse como habilitado
         await new Promise((resolve) => {
             const req = http.request(BASE + '/api/active-course', { headers: { Origin: 'http://origen-malicioso.test' } }, res => {

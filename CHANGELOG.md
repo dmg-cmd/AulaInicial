@@ -3,6 +3,95 @@
 Todos los cambios notables en este proyecto están documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.10.1] - 2026-09-19
+### Corregido y Blindado
+- **Solución Definitiva de Visualización del Logotipo Oficial (`assets/logo-base64.js`, `index.html`, `admin.html`, `server.js`, `src/config/paths.js`)**:
+  - **Fallback Inmediato Data URI Base64**: Se generó `assets/logo-base64.js` precargando el isotipo oficial de AulaInicial en Base64 (`window.AULAINICIAL_LOGO_DATA_URI`). Ante cualquier interrupción de red o fallo de resolución estática, el manejador `onerror` conmuta instantáneamente al Data URI sin depender del disco ni del servidor.
+  - **Resolución Resiliente de Directorio de Assets (`ASSETS_DIR`)**: `src/config/paths.js` y `server.js` ahora localizan la carpeta `assets/` de forma adaptativa tanto en `ROOT_DIR`, `EXEC_DIR` como en la ruta relativa del paquete, garantizando que Express sirva `/assets` correctamente en entornos empaquetados o portátiles.
+  - **Sincronización de Cache-Busting a v4.10.1**: Actualizadas las referencias a scripts y badges a `v4.10.1`.
+
+## [4.10.0] - 2026-09-19
+### Corregido y Blindado
+- **Renderizado Permanente y Blindaje de Logotipo y Badges de Versión (`index.html`, `admin.html`, `index.js`, `admin.js`, `src/config/env.js`)**:
+  - **Precarga Estática Inmediata**: Los badges de versión en el portal del alumno (`#app-version-badge`, `#footer-version`) y en el panel docente (`#login-version-badge`, `#admin-version-badge`, `#admin-footer-version`) ahora inician con `v4.10.0` pre-renderizado en el HTML, eliminando los puntos suspensivos (`...`) o demoras al cargar.
+  - **Resolución Resiliente de Versión en Backend (`src/config/env.js`)**: El backend ahora localiza `package.json` de forma adaptativa tanto en `ROOT_DIR`, `EXEC_DIR` como en la ruta relativa física del paquete, actualizando el fallback estático a `4.10.0` para evitar versiones desfasadas en USBs o ejecutables portátiles.
+  - **Dimensiones y Fallback Defensivo en Logotipo (`<img>`)**: Incorporación de atributos explícitos `width` y `height` y manejador `onerror="this.onerror=null; this.src='assets/logo.png';"` en los isotipos de cabecera y pantalla de login, garantizando que si una imagen demora o falla la resolución relativa, cargue automáticamente el logotipo principal sin distorsión de layout.
+  - **Sincronización Total de Cache-Busters**: Se unificaron las versiones de consulta en recursos estáticos (`style.css?v=4.10.0`, `index.js?v=4.10.0`, `admin.js?v=4.10.0`), impidiendo que navegadores en dispositivos de estudiantes o docentes retengan archivos cacheados antiguos.
+  - **Mecanismo de Reintento y Fallback Dual en Clientes**: Las funciones `loadAppVersion()` y `loadAdminVersionBadge()` ahora implementan reintentos automáticos y consulta secundaria a `/api/server-info` si `/api/version` sufriese retrasos de red.
+
+---
+
+## [4.9.4] - 2026-09-14
+### Corregido y Blindado
+- **Aislamiento Total de Pruebas Automatizadas y Protección de Planillas Reales (`src/config/paths.js` y `test/registro-guardar.test.js`)**:
+  - Soporte de variables de entorno `TEST_CURSOS_DIR` y `TEST_REGISTROS_DIR` en `src/config/paths.js`, permitiendo a los procesos de testing operar en directorios independientes.
+  - Refactorización completa de `test/registro-guardar.test.js` para generar un curso mock desechable (`Curso_Mock_Test.xlsx`) en una carpeta temporal aislada (`.tmp_test_guardar`), limpiándola automáticamente al finalizar.
+  - Eliminación de cualquier riesgo de contaminación o modificación accidental de las planillas reales de alumnos en `cursos/` y `registros/` durante la ejecución de `npm test` o pipelines de CI/CD.
+- **Corrección de Falso Presente en Primer Alumna (`registros/TED - PDS San Miguel mayo 2025.xlsx`)**:
+  - Eliminación de la pestaña con fecha actual generada indebidamente por pruebas anteriores en el archivo de registro operativo real.
+  - Sanitización y restauración de los datos originales de la primera alumna (`Lucila Alende Noceti`), removiendo campos ficticios (`test_student@example.com`, DNI de prueba) y re-consolidando el presentismo para que refleje fielmente su estado pendiente (`presenteHoy: false`, en gris).
+
+---
+
+## [4.9.3] - 2026-09-14
+### Corregido y Blindado
+- **Restauración de Campos Estándar y Personalizados (`form-config.json`)**:
+  - Reactivación completa (`enabled: true`) de los 7 campos estándar del sistema (`email`, `dni`, `titulo`, `tecnologia`, `grupo`, `telefono`, `foto`) y de las 6 preguntas y consignas personalizadas agregadas por el docente, resolviendo el problema por el cual habían dejado de solicitarse en el formulario del alumno.
+- **Blindaje contra Desmarcado y Guardado Accidental (`admin.js` / `admin.html`)**:
+  - **Confirmación interactiva en `🧹 Desmarcar Todo`**: Se agregó cuadro de confirmación modal previo para impedir que un clic accidental desactive masivamente los campos.
+  - **Nuevo botón `✅ Marcar Todo`**: Permite activar en un solo clic todos los campos estándar y personalizados desde la barra de acciones rápidas.
+  - **Protección contra persistencia vacía en `saveCurrentFormConfig`**: Advertencia explícita si se intenta guardar con 0 campos activos, y bloqueo de auto-guardado silencioso si no hay campos seleccionados.
+  - **Inicialización temprana**: Invocación garantizada de `loadAdminFormConfig()` dentro de `initAdmin()` para que la configuración esté disponible y sincronizada desde el primer segundo sin depender de entrar a la pestaña de formulario.
+  - **Condicionamiento en Probar Vista Alumno (`btnStudentView`)**: Solo ejecuta el guardado previo si existen cambios pendientes reales (`isFormConfigDirty`).
+- **Respaldo Automático de Configuración (`src/config/formConfig.js` y `paths.js`)**:
+  - Creación automática de copia de seguridad `form-config.backup.json` antes de sobrescribir `form-config.json`.
+  - Mecanismo de fallback y recuperación automática desde el backup si el archivo principal no existiese o se corrompiese.
+
+---
+
+## [4.9.2] - 2026-09-14
+### Añadido
+- **Barra de Íconos de Redes Sociales Oficiales y Centralización en Publicidad**:
+  - **Skill del Agente de Publicidad (`.agents/skills/publicista-redes-sociales/SKILL.md`)**: Registro centralizado de las 4 plataformas oficiales de difusión de AulaInicial:
+    - ☕ Ko-fi: `https://ko-fi.com/dmg1552`
+    - 📸 Instagram: `https://www.instagram.com/dmg211258/` (`@dmg211258`)
+    - 🎵 TikTok: `https://www.tiktok.com/@dmg1552` (`@dmg1552`)
+    - ▶️ YouTube: `https://www.youtube.com/@DmG-e5i` (`@DmG-e5i`)
+  - **Interfaz Web Limpia (Solo Íconos con Enlace)**:
+    - Sustitución de botones con texto por una barra de íconos vectoriales SVG limpios y redondeados (`.social-icon-btn` de 42x42px).
+    - Implementación en pantalla de login (`#login-screen`), pie de página del panel docente (`admin.html`) y pie del portal del alumno (`index.html`).
+    - Tooltips descriptivos (`title` y `aria-label`) para cada plataforma.
+  - **Documentación y Badges**: Incorporación de badges oficiales de TikTok y YouTube en `README.md` y actualización de coordenadas en `Docs/publicidad/CAMPANA_DOCENTES_REDES.md`.
+
+---
+
+## [4.9.1] - 2026-09-14
+### Añadido
+- **Banner de Apoyo Comunitario (Ko-fi e Instagram)**:
+  - **Mensaje y Botonera**: Integración del cartel *"☕ Invitame un café para mejorar el proyecto"* vinculando directamente el perfil de donación de **Ko-fi** (`https://ko-fi.com/dmg1552`) y la cuenta oficial de **Instagram** (`https://www.instagram.com/dmg1552/`).
+  - **Ubicación en Panel del Docente (`admin.html`)**: Pie de página dedicado (`.admin-support-footer`) con tarjeta glassmorphic oscura de alto contraste, y bloque complementario en la tarjeta de autenticación (`#login-screen`).
+  - **Mención Discreta en Portal del Alumno (`index.html`)**: Enlaces tipo pastilla (`.kofi-pill-link`, `.instagram-pill-link`) en el pie de página (`.app-footer`), manteniendo el flujo de registro totalmente limpio y sin distracciones.
+  - **Estilos Visuales Ergonomizados (`style.css`)**: Botones estilizados con colores de marca oficiales (rojo Ko-fi y degradé cálido de Instagram), interactividad hover y adaptación a pantallas móviles.
+
+---
+
+## [4.9.0] - 2026-09-14
+### Añadido
+- **Identidad Visual y Logotipo Oficial Integrado**:
+  - **Isotipo y Logotipo Oficial (Modelo A - Fusión Tecnológica)**: Integración formal del isotipo que sintetiza el código QR, birrete académico y letra representativa de AulaInicial.
+  - **Directorio de Assets Públicos (`assets/`)**: Generación de recursos optimizados en PNG y formato multi-resolución:
+    - `assets/logo.png`: Logotipo en alta resolución (1024x1024).
+    - `assets/logo-header.png`: Versión optimizada (256x256) para visualización en cabeceras web, proyectores de aula y pantallas móviles.
+    - `assets/favicon.png`: Favicon web nítido (64x64) para pestañas de navegadores modernos.
+    - `favicon.ico`: Favicon tradicional multi-resolución (16px a 64px) servido en la raíz y en `/assets/favicon.ico`.
+  - **Integración en Portal del Alumno (`index.html`)**: Incorporación del logotipo en la cabecera junto al título "Portal de Registro" y el badge de versión, con favicon en el `<head>`.
+  - **Integración en Pantalla de Acceso Docente (`admin.html`)**: Logotipo prominente en la tarjeta de login para transmitir profesionalismo y seguridad, y versión compacta en la barra de control docente.
+  - **Estilos UI/UX y Responsividad (`style.css`)**: Clases `.brand-logo-header`, `.brand-logo-login` y `.brand-logo-admin-header` con acabado glassmorphic sutil, bordes suaves y adaptación ergonómica a pantallas móviles.
+  - **Soporte en Empaquetado Binario (`package.json`)**: Inclusión de `"assets/**/*"` y `"favicon.ico"` en la directiva `pkg.assets` para distribución autónoma sin dependencias externas.
+  - **Pruebas Automatizadas de Recursos (`test/smoke.js`)**: Verificación HTTP 200 de los recursos estáticos del logotipo en la suite `npm test`.
+
+---
+
 ## [4.8.2] - 2026-09-13
 ### Corregido
 - **Corrección de Excepción al Guardar Datos en Excel (`reading 'add'`)**:

@@ -1,9 +1,50 @@
 const { spawn } = require('child_process');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
+const xlsx = require('xlsx');
 
 const PORT = 3998;
 const BASE = `http://localhost:${PORT}`;
+
+// Directorio temporal aislado para pruebas
+const TMP_TEST_DIR = path.join(__dirname, '..', '.tmp_test_guardar');
+const TMP_CURSOS = path.join(TMP_TEST_DIR, 'cursos');
+const TMP_REGISTROS = path.join(TMP_TEST_DIR, 'registros');
+
+function crearCursoMock() {
+    if (fs.existsSync(TMP_TEST_DIR)) {
+        fs.rmSync(TMP_TEST_DIR, { recursive: true, force: true });
+    }
+    fs.mkdirSync(TMP_CURSOS, { recursive: true });
+    fs.mkdirSync(TMP_REGISTROS, { recursive: true });
+
+    // Planilla mock con dos alumnos ficticios
+    const mockData = [
+        {
+            'Last name': 'Pérez',
+            'First name': 'Juan',
+            'Email address': 'juan.perez@test.edu.ar'
+        },
+        {
+            'Last name': 'Gómez',
+            'First name': 'María',
+            'Email address': 'maria.gomez@test.edu.ar'
+        }
+    ];
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.json_to_sheet(mockData);
+    xlsx.utils.book_append_sheet(wb, ws, 'Digital Activity');
+    xlsx.writeFile(wb, path.join(TMP_CURSOS, 'Curso_Mock_Test.xlsx'));
+}
+
+function limpiarEntornoTest() {
+    try {
+        if (fs.existsSync(TMP_TEST_DIR)) {
+            fs.rmSync(TMP_TEST_DIR, { recursive: true, force: true });
+        }
+    } catch (_) {}
+}
 
 function request(method, relPath, data = null) {
     return new Promise((resolve, reject) => {
@@ -46,8 +87,16 @@ async function waitForServer(tries = 40) {
 }
 
 (async () => {
+    crearCursoMock();
+
     const server = spawn('node', [path.join(__dirname, '..', 'server.js')], {
-        env: { ...process.env, PORT: String(PORT), NODE_ENV: 'test' },
+        env: {
+            ...process.env,
+            PORT: String(PORT),
+            NODE_ENV: 'test',
+            TEST_CURSOS_DIR: TMP_CURSOS,
+            TEST_REGISTROS_DIR: TMP_REGISTROS
+        },
         stdio: 'ignore'
     });
 
@@ -67,14 +116,14 @@ async function waitForServer(tries = 40) {
             fail('GET /api/check-registration falló: ' + JSON.stringify(checkRes.json));
         }
 
-        // 2. Obtener lista de alumnos del curso activo
+        // 2. Obtener lista de alumnos del curso mock
         const alumnosRes = await request('GET', '/api/alumnos');
         if (alumnosRes.status === 200 && Array.isArray(alumnosRes.json) && alumnosRes.json.length > 0) {
             const alumno = alumnosRes.json[0];
             const activeRes = await request('GET', '/api/active-course');
             const curso = activeRes.json.activeCourse;
 
-            // 3. Ejecutar POST /api/registro REAL (no demo) para asegurar que registeredIPs.add funcione
+            // 3. Ejecutar POST /api/registro sobre el curso mock
             const regRes = await request('POST', '/api/registro', {
                 curso,
                 alumnoId: alumno.id,
@@ -88,12 +137,12 @@ async function waitForServer(tries = 40) {
             });
 
             if (regRes.status === 200 && regRes.json && regRes.json.success) {
-                ok('POST /api/registro real ejecutado con éxito sin error de Excel o add()');
+                ok('POST /api/registro mock ejecutado con éxito sin error de Excel o add()');
             } else {
-                fail('POST /api/registro real falló con error: ' + JSON.stringify(regRes.json));
+                fail('POST /api/registro mock falló con error: ' + JSON.stringify(regRes.json));
             }
 
-            // 4. Verificar que check-registration ahora reconozca la IP registrada
+            // 4. Verificar que check-registration reconozca la IP registrada
             const checkAfter = await request('GET', '/api/check-registration');
             if (checkAfter.status === 200 && checkAfter.json.registered === true) {
                 ok('GET /api/check-registration confirma registeredIPs.has() == true');
@@ -101,14 +150,15 @@ async function waitForServer(tries = 40) {
                 fail('registeredIPs no registró la IP: ' + JSON.stringify(checkAfter.json));
             }
         } else {
-            fail('No se obtuvieron alumnos para la prueba');
+            fail('No se obtuvieron alumnos mock para la prueba');
         }
     } catch (e) {
         fail('Error inesperado en prueba: ' + e.message);
     } finally {
         server.kill();
+        limpiarEntornoTest();
     }
 
-    console.log(failed ? '\nPRUEBA REGISTRO REAL: FALLÓ' : '\nPRUEBA REGISTRO REAL: OK');
+    console.log(failed ? '\nPRUEBA REGISTRO REAL (AISLADA): FALLÓ' : '\nPRUEBA REGISTRO REAL (AISLADA): OK');
     process.exit(failed ? 1 : 0);
 })();

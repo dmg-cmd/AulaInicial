@@ -40,6 +40,7 @@ Thumbs.db
 # Logs y bases de datos temporales
 *.log
 registros/fotos/
+form-config.backup.json
 
 # Ejecutables compilados (se generan con `npm run build` y se distribuyen por GitHub Releases)
 bin/
@@ -55,4 +56,24 @@ AGENTS.md
 # PDFs de documentación generados desde el repo (se mantienen en GitHub)
 !README.pdf
 !cursos/README_SETUP.pdf
+
+# Material publicitario, difusión en redes y multimedia pesado (DLP y optimización)
+publicidad/
+**/publicidad/
+Docs/publicidad/
+*.m4a
+*.mp4
+*.tscproj
+
+# Propuestas de diseño y modelos preliminares de logotipos (no se suben a GitHub)
+Logos/
+**/Logos/
+Docs/Logos/
+
+# Blindaje de Publicaciones y Marketing
+/Publicaciones/
+Publicaciones/
+/publicidad/
+publicidad/
+SUGERENCIAS_MARKETING.md
 

@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const { ROOT_DIR } = require('./paths');
+const { ROOT_DIR, EXEC_DIR } = require('./paths');
 
 const PORT = process.env.PORT || 3000;
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
@@ -66,15 +66,24 @@ function getLocalIPs() {
     return ips;
 }
 
-let APP_VERSION = '4.8.2';
+let APP_VERSION = '4.10.1';
 try {
-    const pkgPath = path.join(ROOT_DIR, 'package.json');
-    if (fs.existsSync(pkgPath)) {
-        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-        if (pkg.version) APP_VERSION = pkg.version;
+    const candidatePaths = [
+        path.join(ROOT_DIR, 'package.json'),
+        path.join(EXEC_DIR, 'package.json'),
+        path.join(__dirname, '..', '..', 'package.json')
+    ];
+    for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+            const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+            if (pkg.version) {
+                APP_VERSION = pkg.version;
+                break;
+            }
+        }
     }
 } catch (err) {
-    // fallback a 4.8.2
+    // fallback seguro a 4.10.1
 }
 
 module.exports = { PORT, ROOT_DIR, ALLOWED_ORIGINS, HMAC_SECRET, getLocalIPs, APP_VERSION };

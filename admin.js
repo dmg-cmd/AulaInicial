@@ -865,6 +865,7 @@ function switchEstadisticaPanel(panel) {
 async function initAdmin() {
     await loadCursos();
     await loadServerInfo();
+    await loadAdminFormConfig();
     await precargarCamposEstadisticasDesdeConfig();
     await loadStatsGroupOptions();
     await loadFechasDisponibles();
@@ -1046,7 +1047,7 @@ async function initAdmin() {
     const btnStudentView = document.getElementById('btn-student-view');
     if (btnStudentView) {
         btnStudentView.addEventListener('click', async () => {
-            if (typeof saveCurrentFormConfig === 'function') {
+            if (isFormConfigDirty && typeof saveCurrentFormConfig === 'function') {
                 await saveCurrentFormConfig(false);
             }
             window.open('/index.html?demo=true', '_blank');
@@ -1154,19 +1155,35 @@ cursoSelect.addEventListener('change', async (e) => {
     }
 });
 
-async function loadAdminVersionBadge() {
+async function loadAdminVersionBadge(retries = 2) {
     try {
+        let vStr = '';
         const res = await fetch('/api/version');
         if (res.ok) {
             const data = await res.json();
-            const vStr = data.version ? `v${data.version}` : '';
+            if (data.version) vStr = `v${data.version}`;
+        }
+        if (!vStr) {
+            const sRes = await fetch('/api/server-info');
+            if (sRes.ok) {
+                const sData = await sRes.json();
+                if (sData.version) vStr = `v${sData.version}`;
+            }
+        }
+        if (vStr) {
             const loginBadge = document.getElementById('login-version-badge');
             const adminBadge = document.getElementById('admin-version-badge');
+            const adminFooterBadge = document.getElementById('admin-footer-version');
             if (loginBadge) loginBadge.textContent = vStr;
             if (adminBadge) adminBadge.textContent = vStr;
+            if (adminFooterBadge) adminFooterBadge.textContent = vStr;
+        } else if (retries > 0) {
+            setTimeout(() => loadAdminVersionBadge(retries - 1), 1000);
         }
     } catch (err) {
-        // silencioso
+        if (retries > 0) {
+            setTimeout(() => loadAdminVersionBadge(retries - 1), 1200);
+        }
     }
 }
 loadAdminVersionBadge();
@@ -1183,8 +1200,10 @@ async function loadServerInfo() {
             const vStr = `v${info.version}`;
             const loginBadge = document.getElementById('login-version-badge');
             const adminBadge = document.getElementById('admin-version-badge');
+            const adminFooterBadge = document.getElementById('admin-footer-version');
             if (loginBadge) loginBadge.textContent = vStr;
             if (adminBadge) adminBadge.textContent = vStr;
+            if (adminFooterBadge) adminFooterBadge.textContent = vStr;
         }
     } catch (err) {
         console.error('Error cargando info del servidor', err);
@@ -3084,6 +3103,9 @@ async function removeCustomField(index) {
 // ── ACCIONES RÁPIDAS DE MARCADO / DESMARCADO DE FORMULARIO ──────────
 function desmarcarTodoFormulario() {
     if (!currentFormConfig) return;
+    if (!confirm('¿Deseas desmarcar todas las casillas del formulario?\n\nLos alumnos no verán estos campos en su pantalla hasta que vuelvas a activarlos.')) {
+        return;
+    }
     Object.keys(currentFormConfig.standardFields || {}).forEach(k => {
         currentFormConfig.standardFields[k].enabled = false;
         const cb = document.getElementById(`std_enable_${k}`);
@@ -3093,6 +3115,21 @@ function desmarcarTodoFormulario() {
         f.enabled = false;
         const cb = document.getElementById(`cust_enable_${idx}`);
         if (cb) cb.checked = false;
+    });
+    setFormConfigDirty(true);
+}
+
+function marcarTodosLosCampos() {
+    if (!currentFormConfig) return;
+    Object.keys(currentFormConfig.standardFields || {}).forEach(k => {
+        currentFormConfig.standardFields[k].enabled = true;
+        const cb = document.getElementById(`std_enable_${k}`);
+        if (cb) cb.checked = true;
+    });
+    (currentFormConfig.customFields || []).forEach((f, idx) => {
+        f.enabled = true;
+        const cb = document.getElementById(`cust_enable_${idx}`);
+        if (cb) cb.checked = true;
     });
     setFormConfigDirty(true);
 }
@@ -3141,6 +3178,10 @@ function marcarUltimosCampos(cantidad = 2) {
 
 document.getElementById('btn-uncheck-all')?.addEventListener('click', () => {
     desmarcarTodoFormulario();
+});
+
+document.getElementById('btn-check-all')?.addEventListener('click', () => {
+    marcarTodosLosCampos();
 });
 
 document.getElementById('btn-check-standard')?.addEventListener('click', () => {
@@ -3337,25 +3378,46 @@ btnAddCustomField?.addEventListener('click', () => {
 async function saveCurrentFormConfig(showAlert = true) {
     if (!currentFormConfig) return false;
 
-    Object.keys(currentFormConfig.standardFields || {}).forEach(key => {
-        const enCb = document.getElementById(`std_enable_${key}`);
-        const reqCb = document.getElementById(`std_req_${key}`);
-        const catSel = document.getElementById(`std_cat_${key}`);
-        if (enCb) currentFormConfig.standardFields[key].enabled = enCb.checked;
-        if (reqCb) currentFormConfig.standardFields[key].required = reqCb.checked;
-        if (catSel) currentFormConfig.standardFields[key].category = catSel.value;
-    });
+    // Blindaje 1: Solo leer checkboxes del DOM si los contenedores están renderizados
+    const stdContainer = document.getElementById('standard-fields-container');
+    const hasStdRendered = stdContainer && stdContainer.children.length > 0;
 
-    (currentFormConfig.customFields || []).forEach((field, index) => {
-        const enCb = document.getElementById(`cust_enable_${index}`);
-        const reqCb = document.getElementById(`cust_req_${index}`);
-        const catSel = document.getElementById(`cust_cat_${index}`);
-        if (enCb) field.enabled = enCb.checked;
-        if (reqCb) field.required = reqCb.checked;
-        if (catSel) field.category = catSel.value;
-    });
+    if (hasStdRendered) {
+        Object.keys(currentFormConfig.standardFields || {}).forEach(key => {
+            const enCb = document.getElementById(`std_enable_${key}`);
+            const reqCb = document.getElementById(`std_req_${key}`);
+            const catSel = document.getElementById(`std_cat_${key}`);
+            if (enCb) currentFormConfig.standardFields[key].enabled = enCb.checked;
+            if (reqCb) currentFormConfig.standardFields[key].required = reqCb.checked;
+            if (catSel) currentFormConfig.standardFields[key].category = catSel.value;
+        });
 
-    readAsistenciaConfigFromUI();
+        (currentFormConfig.customFields || []).forEach((field, index) => {
+            const enCb = document.getElementById(`cust_enable_${index}`);
+            const reqCb = document.getElementById(`cust_req_${index}`);
+            const catSel = document.getElementById(`cust_cat_${index}`);
+            if (enCb) field.enabled = enCb.checked;
+            if (reqCb) field.required = reqCb.checked;
+            if (catSel) field.category = catSel.value;
+        });
+
+        readAsistenciaConfigFromUI();
+    }
+
+    // Blindaje 2: Contabilizar campos activos
+    const enabledStdCount = Object.values(currentFormConfig.standardFields || {}).filter(f => f && f.enabled !== false).length;
+    const enabledCustCount = (currentFormConfig.customFields || []).filter(f => f && f.enabled !== false).length;
+    const totalEnabled = enabledStdCount + enabledCustCount;
+
+    if (totalEnabled === 0) {
+        if (showAlert) {
+            const confirmarVacio = confirm('⚠️ Advertencia: Has desmarcado TODOS los campos del formulario.\n\nEn esta condición, el formulario del alumno solo solicitará su Nombre y Apellido sin ningún otro dato.\n\n¿Estás seguro de que deseas guardar esta configuración?');
+            if (!confirmarVacio) return false;
+        } else {
+            console.warn('Protección activa: se omitió auto-guardado silencioso de configuración con 0 campos habilitados.');
+            return false;
+        }
+    }
 
     try {
         const res = await fetch('/api/form-config', {

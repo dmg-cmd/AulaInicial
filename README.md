@@ -2,15 +2,23 @@
 
 Plataforma **portátil, autónoma y de cero configuración** para gestionar asistencia, registros iniciales de alumnos, verificación interactiva de datos e identificación visual en aulas presenciales o virtuales. Diseñada para funcionar directamente desde una memoria USB en la PC del aula, sin requerir instalación de software en los dispositivos de los estudiantes ni en el equipo docente.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-4.8.2-6366f1.svg)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-4.10.0-6366f1.svg)
 ![Node](https://img.shields.io/badge/node->=22.0.0-green.svg)
-![Licencia](https://img.shields.io/badge/licencia-Educativa-blue.svg)
+![Ko-fi](https://img.shields.io/badge/Ko--fi-Apoyar%20Proyecto-ff5e5b.svg?logo=kofi)
+![Instagram](https://img.shields.io/badge/Instagram-@dmg211258-E4405F.svg?logo=instagram)
+![TikTok](https://img.shields.io/badge/TikTok-@dmg1552-000000.svg?logo=tiktok)
+![YouTube](https://img.shields.io/badge/YouTube-@DmG--e5i-FF0000.svg?logo=youtube)
 
 > Los estudiantes acceden escaneando un código QR proyectado en el aula; completan o verifican sus datos desde su celular y dan el presente diario. El docente administra las clases, toma asistencia, proyecta el QR y supervisa las planillas desde un panel de control web.
 
 ---
 
 ## ✨ Características Principales
+
+### 🎨 Identidad Visual y Logotipo Oficial (v4.9.0)
+- **Isotipo Oficial Integrado:** Fusión de diseño que sintetiza el código QR, birrete académico y letra representativa de AulaInicial.
+- **Favicon Dinámico y Multi-Resolución:** Icono nítido de pestaña web (`favicon.png` de 64x64 y `favicon.ico` con capas de 16px a 64px) para reconocimiento inmediato del sistema.
+- **Cabeceras Ergonómicas:** Integración del logotipo en la cabecera del portal del alumno (`index.html`), en la pantalla de bienvenida/login y en el panel de control docente (`admin.html`).
 
 ### 📱 Experiencia del Alumno (Móvil / Web)
 - **Solución Definitiva de Alto Contraste y Fondos Sólidos (v4.8.1):** Blindaje total contra fondos claros en móviles y navegadores: fondo general opaco `#090d16`, tarjetas en `#0f172a`, controles (inputs, selects, multiselect) en negro mate azabache `#030712` con bordes nítidos `#475569` y texto blanco puro `#ffffff` (ratio de contraste 21:1, superando WCAG AAA). Soporte para `<meta name="color-scheme" content="dark">`, cache-buster dinámico y blindaje de `-webkit-autofill`.
@@ -150,6 +158,13 @@ npm run build:macos        # Compila ambas arquitecturas para Mac
 - [DOCUMENTACION.md](DOCUMENTACION.md): Bitácora técnica y trazabilidad de todos los planes de acción.
 - [CHANGELOG.md](CHANGELOG.md): Historial de cambios siguiendo el estándar *Keep a Changelog*.
 - [Docs/HISTORIAL_MEJORAS.md](Docs/HISTORIAL_MEJORAS.md): Historial consolidado de versiones y mejoras.
+
+## ☕ Apoyo Comunitario y Redes Oficiales
+AulaInicial es un proyecto de software libre, autónomo y privado para docentes. Si esta herramienta te ahorra tiempo en clase y valoras su desarrollo independiente:
+- ☕ **[Invitame un café en Ko-fi](https://ko-fi.com/dmg1552)**: Apoya la incorporación de nuevas funciones y mejoras continuas.
+- 📸 **[Instagram (@dmg211258)](https://www.instagram.com/dmg211258/)**: Novedades, tutoriales rápidos y tips para docentes.
+- 🎵 **[TikTok (@dmg1552)](https://www.tiktok.com/@dmg1552)**: Videos cortos demostrativos de uso en clase.
+- ▶️ **[YouTube (@DmG-e5i)](https://www.youtube.com/@DmG-e5i)**: Tutoriales completos y guías paso a paso.
 
 ---
 
