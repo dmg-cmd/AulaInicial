@@ -8,7 +8,7 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 
 | Plan | Versión | Título / Objetivo | Estado | Fecha de Cierre |
 | :--- | :---: | :--- | :---: | :---: |
-| [Plan 60](file:///e:/Sandbox/AulaInicial/Docs/planes/60-publicacion-segura-github-v4101.md) | **v4.10.1** | Publicación segura a GitHub (Versión 4.10.1) con auditoría DLP | **En curso ⏳** | Pendiente |
+| [Plan 60](file:///e:/Sandbox/AulaInicial/Docs/planes/60-publicacion-segura-github-v4101.md) | **v4.10.1** | Publicación segura a GitHub (Versión 4.10.1) con auditoría DLP | **Finalizado ✅** | 2026-09-24 |
 | [Plan 59](file:///e:/Sandbox/AulaInicial/Docs/planes/59-solucion-definitiva-logo-base64.md) | **v4.10.1** | Solución definitiva de visualización de logotipo (embebido Data URI directo y recompilación) | **Finalizado ✅** | 2026-09-19 |
 | [Plan 58](file:///e:/Sandbox/AulaInicial/Docs/planes/58-correccion-visualizacion-logo-version-blindaje.md) | **v4.10.0** | Corrección y blindaje definitivo de visualización de logotipo y versión del sistema | **Finalizado ✅** | 2026-09-19 |
 | [Plan 57](file:///e:/Sandbox/AulaInicial/Docs/planes/57-correccion-presente-automatico-primer-alumna-aislamiento-tests.md) | **v4.9.4** | Corrección de falso presente automático en primer alumna y aislamiento total de pruebas automatizadas | **Finalizado ✅** | 2026-09-14 |
