@@ -8,6 +8,8 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 
 | Plan | Versión | Título / Objetivo | Estado | Fecha de Cierre |
 | :--- | :---: | :--- | :---: | :---: |
+| [Plan 62](file:///e:/Sandbox/AulaInicial/Docs/planes/62-desplegable-titulo-edicion-alumno.md) | **v4.12.0** | Selector desplegable dinámico para Título / Especialidad en el modal de edición de ficha del alumno | **Finalizado ✅** | 2026-09-28 |
+| [Plan 61](file:///e:/Sandbox/AulaInicial/Docs/planes/61-ordenar-opciones-campos-estandar-y-personalizados.md) | **v4.11.0** | Ordenamiento de opciones (▲/▼, A-Z, Z-A) en campos estándar y personalizados del formulario | **Finalizado ✅** | 2026-09-28 |
 | [Plan 60](file:///e:/Sandbox/AulaInicial/Docs/planes/60-publicacion-segura-github-v4101.md) | **v4.10.1** | Publicación segura a GitHub (Versión 4.10.1) con auditoría DLP | **Finalizado ✅** | 2026-09-24 |
 | [Plan 59](file:///e:/Sandbox/AulaInicial/Docs/planes/59-solucion-definitiva-logo-base64.md) | **v4.10.1** | Solución definitiva de visualización de logotipo (embebido Data URI directo y recompilación) | **Finalizado ✅** | 2026-09-19 |
 | [Plan 58](file:///e:/Sandbox/AulaInicial/Docs/planes/58-correccion-visualizacion-logo-version-blindaje.md) | **v4.10.0** | Corrección y blindaje definitivo de visualización de logotipo y versión del sistema | **Finalizado ✅** | 2026-09-19 |
@@ -30,6 +32,22 @@ Este documento es mantenido por el rol de **Documentador Técnico** para preserv
 ---
 
 ## 📋 Detalle de Mejoras por Versión
+
+### Versión 4.12.0 (2026-09-28)
+- **Plan asociado:** [`Docs/planes/62-desplegable-titulo-edicion-alumno.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/62-desplegable-titulo-edicion-alumno.md)
+- **Selector Desplegable de Título en Edición de Alumnos:**
+  1. **Desplegable Dinámico de Opciones:** Sustitución del `<input type="text">` estático por un `<select id="edit-titulo">` alimentado directamente por las opciones de Título / Especialidad configuradas en el sistema.
+  2. **Preservación Incondicional de Datos:** Detección de títulos no estándar para incorporarlos dinámicamente al desplegable como valor seleccionado, protegiendo el historial del alumno.
+  3. **Opción Manual Flexible:** Posibilidad de elegir "➕ Ingresar otro título manualmente..." con campo de texto reactivo para nuevos títulos no contemplados.
+  4. **Sincronización Total de Versión:** Actualización a v4.12.0 en package.json, backend y frontend.
+
+### Versión 4.11.0 (2026-09-28)
+- **Plan asociado:** [`Docs/planes/61-ordenar-opciones-campos-estandar-y-personalizados.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/61-ordenar-opciones-campos-estandar-y-personalizados.md)
+- **Ordenamiento de Opciones en Campos del Formulario:**
+  1. **Flechas Interactivas (▲ / ▼):** Reordenamiento ágil de ítems individuales dentro del modal de edición de opciones con deshabilitación dinámica en extremos.
+  2. **Acciones Rápidas Alfabéticas (🔤 A-Z / 🔤 Z-A):** Ordenamiento automático en orden ascendente y descendente aplicando `localeCompare` con soporte nativo de español.
+  3. **Compatibilidad Plena:** Aplicado de forma transparente tanto a campos estándar (`titulo`, `tecnologia`) como a campos personalizados (`select`, `multiselect`).
+  4. **Protección de Cambios y Dirty State:** Integración con `setFormConfigDirty(true)` para asegurar que el docente guarde las modificaciones en el servidor.
 
 ### Versión 4.10.1 (2026-09-19)
 - **Plan asociado:** [`Docs/planes/59-solucion-definitiva-logo-base64.md`](file:///e:/Sandbox/AulaInicial/Docs/planes/59-solucion-definitiva-logo-base64.md)

@@ -2625,8 +2625,76 @@ async function abrirModalEdicionAlumno(alumno) {
         document.getElementById('edit-apellido').value = ape;
         document.getElementById('edit-dni').value = datos.dni || '';
         document.getElementById('edit-grupo').value = datos.grupo || '';
-        document.getElementById('edit-titulo').value = datos.titulo || '';
         document.getElementById('edit-email').value = datos.email || '';
+
+        // Carga dinámica de opciones para el selector desplegable de Título / Especialidad
+        let tituloOptions = [];
+        if (currentFormConfig?.standardFields?.titulo?.options && Array.isArray(currentFormConfig.standardFields.titulo.options)) {
+            tituloOptions = currentFormConfig.standardFields.titulo.options;
+        } else {
+            try {
+                const cfgRes = await fetch('/api/form-config');
+                if (cfgRes.ok) {
+                    currentFormConfig = await cfgRes.json();
+                    if (currentFormConfig?.standardFields?.titulo?.options) {
+                        tituloOptions = currentFormConfig.standardFields.titulo.options;
+                    }
+                }
+            } catch (_) {}
+        }
+
+        const tituloSelect = document.getElementById('edit-titulo');
+        const tituloOtroInput = document.getElementById('edit-titulo-otro');
+        if (tituloOtroInput) {
+            tituloOtroInput.value = '';
+            tituloOtroInput.style.display = 'none';
+        }
+
+        if (tituloSelect) {
+            tituloSelect.innerHTML = '<option value="">-- Selecciona un Título / Especialidad --</option>';
+            const valorActual = (datos.titulo || '').trim();
+            let coincidencia = false;
+
+            tituloOptions.forEach(opt => {
+                const optEl = document.createElement('option');
+                optEl.value = opt;
+                optEl.textContent = opt;
+                if (valorActual && opt.toUpperCase() === valorActual.toUpperCase()) {
+                    optEl.selected = true;
+                    coincidencia = true;
+                }
+                tituloSelect.appendChild(optEl);
+            });
+
+            // Si el alumno tiene un valor que no está en la lista de opciones, preservarlo
+            if (valorActual && !coincidencia) {
+                const optExtra = document.createElement('option');
+                optExtra.value = valorActual;
+                optExtra.textContent = `${valorActual} (Actual)`;
+                optExtra.selected = true;
+                tituloSelect.appendChild(optExtra);
+            }
+
+            // Opción para ingresar otro título manualmente
+            const optOtro = document.createElement('option');
+            optOtro.value = '__OTRO_MANUAL__';
+            optOtro.textContent = '➕ Ingresar otro título manualmente...';
+            tituloSelect.appendChild(optOtro);
+
+            tituloSelect.onchange = () => {
+                if (tituloSelect.value === '__OTRO_MANUAL__') {
+                    if (tituloOtroInput) {
+                        tituloOtroInput.style.display = 'block';
+                        tituloOtroInput.focus();
+                    }
+                } else {
+                    if (tituloOtroInput) {
+                        tituloOtroInput.style.display = 'none';
+                        tituloOtroInput.value = '';
+                    }
+                }
+            };
+        }
 
         editModal.style.display = 'flex';
     } catch (err) {
@@ -2647,8 +2715,18 @@ async function guardarEdicionAlumnoBackend() {
         const nuevoApellido  = document.getElementById('edit-apellido').value.trim();
         const nuevoDni       = document.getElementById('edit-dni').value.trim();
         const nuevoGrupo     = document.getElementById('edit-grupo').value.trim();
-        const nuevoTitulo    = document.getElementById('edit-titulo').value.trim();
         const nuevoEmail     = document.getElementById('edit-email').value.trim();
+
+        const tituloSelect = document.getElementById('edit-titulo');
+        const tituloOtroInput = document.getElementById('edit-titulo-otro');
+        let nuevoTitulo = '';
+        if (tituloSelect) {
+            if (tituloSelect.value === '__OTRO_MANUAL__') {
+                nuevoTitulo = (tituloOtroInput?.value || '').trim();
+            } else {
+                nuevoTitulo = tituloSelect.value.trim();
+            }
+        }
 
         if (!nombreOriginal) return;
 
@@ -3251,13 +3329,40 @@ function renderOptionsList() {
         const row = document.createElement('div');
         row.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);';
         
+        const isFirst = i === 0;
+        const isLast = i === tempEditingOptions.length - 1;
+
         row.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <button type="button" onclick="moveTempOption(${i}, -1)" ${isFirst ? 'disabled' : ''} style="background: none; border: none; color: ${isFirst ? 'rgba(255,255,255,0.2)' : '#60a5fa'}; cursor: ${isFirst ? 'not-allowed' : 'pointer'}; font-size: 0.75rem; padding: 0 4px; line-height: 1; transition: color 0.15s;" title="${isFirst ? 'Ya está en la primera posición' : 'Subir opción'}">▲</button>
+                <button type="button" onclick="moveTempOption(${i}, 1)" ${isLast ? 'disabled' : ''} style="background: none; border: none; color: ${isLast ? 'rgba(255,255,255,0.2)' : '#60a5fa'}; cursor: ${isLast ? 'not-allowed' : 'pointer'}; font-size: 0.75rem; padding: 0 4px; line-height: 1; transition: color 0.15s;" title="${isLast ? 'Ya está en la última posición' : 'Bajar opción'}">▼</button>
+            </div>
             <input type="text" value="${esc(optText)}" onchange="updateTempOption(${i}, this.value)" style="flex: 1; padding: 0.3rem 0.5rem; border-radius: 4px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.2); color: white; font-size: 0.9rem;">
-            <button onclick="deleteTempOption(${i})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.1rem;" title="Eliminar opción">&times;</button>
+            <button onclick="deleteTempOption(${i})" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 1.1rem; padding: 0 4px;" title="Eliminar opción">&times;</button>
         `;
         listContainer.appendChild(row);
     });
 }
+
+function moveTempOption(index, delta) {
+    const targetIndex = index + delta;
+    if (targetIndex < 0 || targetIndex >= tempEditingOptions.length) return;
+    const [item] = tempEditingOptions.splice(index, 1);
+    tempEditingOptions.splice(targetIndex, 0, item);
+    renderOptionsList();
+}
+
+function sortTempOptionsAlpha(ascending = true) {
+    if (!tempEditingOptions || tempEditingOptions.length <= 1) return;
+    tempEditingOptions.sort((a, b) => {
+        const cmp = a.localeCompare(b, 'es', { sensitivity: 'base', numeric: true });
+        return ascending ? cmp : -cmp;
+    });
+    renderOptionsList();
+}
+
+window.moveTempOption = moveTempOption;
+window.sortTempOptionsAlpha = sortTempOptionsAlpha;
 
 function updateTempOption(index, newText) {
     const clean = newText.trim();
@@ -3273,6 +3378,14 @@ function deleteTempOption(index) {
     tempEditingOptions.splice(index, 1);
     renderOptionsList();
 }
+
+document.getElementById('btn-sort-options-az')?.addEventListener('click', () => {
+    sortTempOptionsAlpha(true);
+});
+
+document.getElementById('btn-sort-options-za')?.addEventListener('click', () => {
+    sortTempOptionsAlpha(false);
+});
 
 document.getElementById('btn-add-option-item')?.addEventListener('click', () => {
     const input = document.getElementById('options-new-item');
@@ -3315,6 +3428,7 @@ document.getElementById('btn-guardar-opciones-modal')?.addEventListener('click',
 
     renderStandardFields();
     renderCustomFields();
+    setFormConfigDirty(true);
     alert('✅ Opciones actualizadas. Recuerda presionar "Guardar Configuración" para aplicar los cambios en el servidor.');
 });
 

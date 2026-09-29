@@ -3,6 +3,23 @@
 Todos los cambios notables en este proyecto están documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.12.0] - 2026-09-28
+### Añadido y Mejorado
+- **Selector Desplegable de Título en la Edición de Ficha del Alumno (`admin.html`, `admin.js`)**:
+  - **Desplegable Dinámico de Opciones**: Reemplazado el campo de texto plano de Título / Especialidad en el modal de edición (`#edit-student-modal`) por un elemento `<select id="edit-titulo">` poblado dinámicamente con las opciones configuradas en el sistema (`formConfig.standardFields.titulo.options`).
+  - **Preservación de Títulos Existentes**: Si un alumno posee un título personalizado o histórico que no figura en la lista configurada, el sistema lo añade automáticamente como opción seleccionada, evitando pérdidas accidentales de datos.
+  - **Opción de Ingreso Manual Complementario**: Incorporada la alternativa "➕ Ingresar otro título manualmente..." con campo de texto reactivo (`#edit-titulo-otro`) para casos excepcionales.
+  - **Sincronización Total de Versión a v4.12.0**: Actualizados badges estáticos y cache-busting en vistas de docente y alumno.
+
+## [4.11.0] - 2026-09-28
+### Añadido y Mejorado
+- **Ordenamiento Interactivo de Opciones en Campos Estándar y Personalizados (`admin.html`, `admin.js`)**:
+  - **Controles de Posición (▲ / ▼)**: Cada ítem de opción en el modal de gestión de desplegables ahora cuenta con botones dedicados para desplazar la opción hacia arriba o hacia abajo, con deshabilitación adaptativa en los límites.
+  - **Botones de Ordenamiento Alfabético (🔤 A-Z / 🔤 Z-A)**: Incorporación de botones de acción rápida para alfabetizar la lista de opciones ascendente o descendentemente respetando el ordenamiento en idioma español (`localeCompare('es', { sensitivity: 'base' })`).
+  - **Soporte Unificado**: Aplicable a campos estándar con opciones (`titulo`, `tecnologia`) y a campos personalizados de tipo desplegable (`select`) y selección múltiple (`multiselect`).
+  - **Detección Automática de Cambios**: Al confirmar las opciones en el modal se activa inmediatamente el indicador de cambios pendientes (`setFormConfigDirty(true)`), alertando al docente que debe guardar en el servidor.
+  - **Actualización de Versión y Cache-Busting a v4.11.0**: Sincronización completa de badges estáticos y parámetros de versión en todos los recursos frontend y backend.
+
 ## [4.10.1] - 2026-09-19
 ### Corregido y Blindado
 - **Solución Definitiva de Visualización del Logotipo Oficial (`assets/logo-base64.js`, `index.html`, `admin.html`, `server.js`, `src/config/paths.js`)**:

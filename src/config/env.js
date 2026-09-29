@@ -66,7 +66,7 @@ function getLocalIPs() {
     return ips;
 }
 
-let APP_VERSION = '4.10.1';
+let APP_VERSION = '4.12.0';
 try {
     const candidatePaths = [
         path.join(ROOT_DIR, 'package.json'),

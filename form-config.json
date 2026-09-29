@@ -2,27 +2,27 @@
   "standardFields": {
     "email": {
       "label": "Email Privado",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
     },
     "dni": {
       "label": "DNI / ID",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
     },
     "titulo": {
       "label": "Título Profesional / Especialidad",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "type": "select",
       "options": [
-        "LICENCIADO",
         "ABOGADO",
+        "ACTOR",
         "ARQUITECTO",
         "COMUNICADOR",
         "CONTADOR",
@@ -30,20 +30,21 @@
         "ENFERMERO",
         "IMAGENOLOGO",
         "INGENIERO",
+        "LICENCIADO",
         "MEDICO",
         "NUTRICIONISTA",
         "POLITOLOGO",
         "PSICOLOGO",
         "RADIOLOGO",
         "SISTEMAS",
+        "TRADUCTOR",
         "VETERINARIO",
-        "OTRO",
-        "ACTOR"
+        "OTRO"
       ]
     },
     "tecnologia": {
       "label": "Relación con la Tecnología",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "type": "select",
@@ -55,21 +56,21 @@
     },
     "grupo": {
       "label": "Grupo (Una sola palabra)",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
     },
     "telefono": {
       "label": "Teléfono (Opcional)",
-      "enabled": true,
+      "enabled": false,
       "required": false,
       "category": "personal",
       "options": []
     },
     "foto": {
       "label": "Foto Real del Rostro (Identificación Visual)",
-      "enabled": true,
+      "enabled": false,
       "required": true,
       "category": "personal",
       "options": []
@@ -88,7 +89,7 @@
         "Preferible quincenal / modular",
         "Opcional / Formativa"
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -98,7 +99,7 @@
       "type": "text",
       "category": "personal",
       "options": [],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -113,7 +114,7 @@
         "Cómoda / Avanzada: Me gusta probar aplicaciones nuevas y suelo resolver problemas técnicos sin dificultad",
         "Entusiasta: Investigo constantemente y me gusta incorporar novedades digitales en mi trabajo."
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -128,7 +129,7 @@
         "Cursé diplomaturas carreras o posgrados completos a distancia",
         "Casi no he tenido experiencia formal con la modalidad a distancia."
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -144,7 +145,7 @@
         "Campus virtual propio de universidad o empresa",
         "Ninguna de las anteriores"
       ],
-      "enabled": true,
+      "enabled": false,
       "required": false
     },
     {
@@ -159,6 +160,88 @@
         "La sobrecarga docente: El tiempo que insume preparar materiales y responder consultas",
         "La brecha técnica: La conectividad inestable y la dificultad con las herramientas"
       ],
+      "enabled": false,
+      "required": false
+    },
+    {
+      "id": "custom_1790473778167",
+      "label": "En una palabra o frase corta, ¿cómo te sentiste durante la dinámica del encuentro de hoy? (Sensaciones, entusiasmo, sobrecarga, curiosidad).",
+      "name": "En una palabra o frase corta, ¿cómo te sentiste durante la dinámica del encuentro de hoy? (Sensaciones, entusiasmo, sobrecarga, curiosidad).",
+      "type": "text",
+      "category": "clase",
+      "options": [],
+      "enabled": false,
+      "required": false
+    },
+    {
+      "id": "custom_1790474050739",
+      "label": "Escala de comodidad con el ritmo y dinamismo de la clase",
+      "name": "Escala de comodidad con el ritmo y dinamismo de la clase",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Muy acelerado / Difícil de seguir",
+        "Algo demandante / Un poco cargado",
+        "Adecuado / En equilibrio",
+        "Muy cómodo y fluido",
+        "Excelente y muy dinámico"
+      ],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1790474187334",
+      "label": "¿Qué momento/bloque te resultó más significativo para tu futuro rol docente?",
+      "name": "¿Qué momento/bloque te resultó más significativo para tu futuro rol docente?",
+      "type": "select",
+      "category": "clase",
+      "options": [
+        "Puesta en común de desobediencia / trampas",
+        "Práctica con Gemini Notebook y anclaje a fuentes cerradas",
+        "Comparación y contraste directo de alucinaciones (con fuente vs. abierta)",
+        "El vistazo a Antigravity y agentes autónomos",
+        "Los juegos"
+      ],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1790474285655",
+      "label": "Nivel de claridad respecto a la consigna de la Actividad 5 (\"El Curador Crítico\").",
+      "name": "Nivel de claridad respecto a la consigna de la Actividad 5 (\"El Curador Crítico\").",
+      "type": "text",
+      "category": "clase",
+      "options": [],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1790474324136",
+      "label": "¿Hubo alguna explicación, herramienta, tema o parte del tiempo que sentís que estuvo de más, fue repetitiva o no aportó valor? ¿Qué acortarías o sacarías?",
+      "name": "¿Hubo alguna explicación, herramienta, tema o parte del tiempo que sentís que estuvo de más, fue repetitiva o no aportó valor? ¿Qué acortarías o sacarías?",
+      "type": "text",
+      "category": "clase",
+      "options": [],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1790474353314",
+      "label": "¿Qué te hubiera gustado que esté presente y no estuvo? ¿Qué tipo de práctica, ejemplo, debate o recurso sentís que enriquecería el taller?",
+      "name": "¿Qué te hubiera gustado que esté presente y no estuvo? ¿Qué tipo de práctica, ejemplo, debate o recurso sentís que enriquecería el taller?",
+      "type": "text",
+      "category": "clase",
+      "options": [],
+      "enabled": true,
+      "required": false
+    },
+    {
+      "id": "custom_1790474387020",
+      "label": "Espacio libre para sugerencias abiertas o dudas al docente.",
+      "name": "Espacio libre para sugerencias abiertas o dudas al docente.",
+      "type": "text",
+      "category": "clase",
+      "options": [],
       "enabled": true,
       "required": false
     }
