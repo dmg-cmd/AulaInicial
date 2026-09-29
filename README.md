@@ -2,7 +2,7 @@
 
 Plataforma **portátil, autónoma y de cero configuración** para gestionar asistencia, registros iniciales de alumnos, verificación interactiva de datos e identificación visual en aulas presenciales o virtuales. Diseñada para funcionar directamente desde una memoria USB en la PC del aula, sin requerir instalación de software en los dispositivos de los estudiantes ni en el equipo docente.
 
-![Versión](https://img.shields.io/badge/versi%C3%B3n-4.10.0-6366f1.svg)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-4.12.0-6366f1.svg)
 ![Node](https://img.shields.io/badge/node->=22.0.0-green.svg)
 ![Ko-fi](https://img.shields.io/badge/Ko--fi-Apoyar%20Proyecto-ff5e5b.svg?logo=kofi)
 ![Instagram](https://img.shields.io/badge/Instagram-@dmg211258-E4405F.svg?logo=instagram)
@@ -35,6 +35,8 @@ Plataforma **portátil, autónoma y de cero configuración** para gestionar asis
 - **Auto-presente y Llegadas Tarde:** Detección de dispositivos vinculados y botón de presente tardío si el alumno llega después del pase de lista.
 
 ### 👨‍🏫 Panel de Control Docente
+- **🎓 Selector Desplegable de Título en Ficha de Alumno (v4.12.0):** Desplegable dinámico en el modal de edición de datos del estudiante que lista todas las opciones configuradas en el sistema, con preservación incondicional de títulos preexistentes e ingreso manual complementario.
+- **🔤 Ordenamiento Interactivo de Opciones (v4.11.0):** Controles visuales (▲ / ▼) para desplazar opciones y botones de alfabetización instantánea (A-Z / Z-A) en campos estándar y personalizados del formulario.
 - **📊 Estadísticas Desglosadas de Selección Múltiple (v4.7.0):** El motor analítico computa frecuencias individuales por cada opción seleccionada en preguntas multiselect, permitiendo porcentajes reales sobre base encuestada y gráficos precisos.
 - **📊 Estadísticas Dinámicas de Campos Personalizados y Encuestas (v4.6.0):** Selector categorizado (`<optgroup>`) que incluye todas las preguntas del docente, relevamientos y columnas de la planilla Excel con métricas en tiempo real, gráficos interactivos (barras, torta, dona, radar) y tablas de frecuencias.
 - **Barra de Acciones Rápidas y Guardado Superior de Formulario (v4.5.0):**
